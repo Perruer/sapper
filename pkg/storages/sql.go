@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitbomdev/minefield/pkg/graph"
+	"github.com/Perruer/sapper/pkg/graph"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

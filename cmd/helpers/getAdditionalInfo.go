@@ -6,9 +6,9 @@ import (
 
 	"strings"
 
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/pkg/tools"
-	"github.com/bitbomdev/minefield/pkg/tools/ingest"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/pkg/tools"
+	"github.com/Perruer/sapper/pkg/tools/ingest"
 )
 
 func ComputeAdditionalInfo(node *apiv1.Node) string {

@@ -1,4 +1,4 @@
-module github.com/bitbomdev/minefield
+module github.com/Perruer/sapper
 
 go 1.23.1
 

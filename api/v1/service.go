@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 
 	"connectrpc.com/connect"
-	service "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/pkg/graph"
-	"github.com/bitbomdev/minefield/pkg/tools/ingest"
+	service "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/Perruer/sapper/pkg/tools/ingest"
 	"github.com/goccy/go-json"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

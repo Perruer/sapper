@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/bitbomdev/minefield/pkg/graph"
-	"github.com/bitbomdev/minefield/pkg/tools"
+	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/Perruer/sapper/pkg/tools"
 )
 
 type Vulnerability struct {

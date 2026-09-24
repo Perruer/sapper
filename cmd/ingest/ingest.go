@@ -1,9 +1,9 @@
 package ingest
 
 import (
-	"github.com/bitbomdev/minefield/cmd/ingest/osv"
-	"github.com/bitbomdev/minefield/cmd/ingest/sbom"
-	"github.com/bitbomdev/minefield/cmd/ingest/scorecard"
+	"github.com/Perruer/sapper/cmd/ingest/osv"
+	"github.com/Perruer/sapper/cmd/ingest/sbom"
+	"github.com/Perruer/sapper/cmd/ingest/scorecard"
 	"github.com/spf13/cobra"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/bitbomdev/minefield/cmd/root"
+	"github.com/Perruer/sapper/cmd/root"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bitbomdev/minefield/pkg/graph"
-	"github.com/bitbomdev/minefield/pkg/utils"
+	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/Perruer/sapper/pkg/utils"
 	"github.com/go-redis/redis/v8"
 )
 

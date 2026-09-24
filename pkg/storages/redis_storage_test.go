@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/bitbomdev/minefield/pkg/graph"
+	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )

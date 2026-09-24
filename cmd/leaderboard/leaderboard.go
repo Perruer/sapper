@@ -1,8 +1,8 @@
 package leaderboard
 
 import (
-	"github.com/bitbomdev/minefield/cmd/leaderboard/custom"
-	"github.com/bitbomdev/minefield/cmd/leaderboard/keys"
+	"github.com/Perruer/sapper/cmd/leaderboard/custom"
+	"github.com/Perruer/sapper/cmd/leaderboard/keys"
 	"github.com/spf13/cobra"
 )
 

@@ -13,10 +13,10 @@ import (
 	"time"
 
 	connectcors "connectrpc.com/cors"
-	service "github.com/bitbomdev/minefield/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
-	"github.com/bitbomdev/minefield/pkg/graph"
-	"github.com/bitbomdev/minefield/pkg/storages"
+	service "github.com/Perruer/sapper/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/Perruer/sapper/pkg/storages"
 	chromadb "github.com/philippgille/chromem-go"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
@@ -55,7 +55,7 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 		&o.CORS,
 		"cors",
 		[]string{"http://localhost:8089"},
-		"Allowed origins for CORS (e.g., 'https://app.bitbom.dev')",
+		"Allowed origins for CORS (e.g., 'https://sapper.example.com')",
 	)
 	cmd.Flags().BoolVar(&o.UseOpenAILLM, "use-openai-llm", false, "Use OpenAI LLM for graph analysis")
 	cmd.Flags().StringVar(&o.VectorDBPath, "vector-db-path", "./db", "Path to the vector database")
@@ -217,11 +217,11 @@ func (o *options) startServer(server *http.Server) error {
 			},
 			{
 				ID:      "16",
-				Content: "Leaderboards format are basicaly the same as a query, just if you do not include the node name for the last part of the query, it fills it with the node we are using for the leaderboard, which is every single node in the leaderboard. This means that to make a proper leaderboard we should have at least one part that does not include a node name, we can still combine this with another query. For example: (dependencies library) and (dependents library pkg:github.com/bitbomdev/minefield) would create a leaderboard sorted by the number of dependencies a project has that is shared with minefield. We can also repeat this 2 part query multiple times, for example : dependencies library and dependents library would work as well.",
+				Content: "Leaderboards format are basicaly the same as a query, just if you do not include the node name for the last part of the query, it fills it with the node we are using for the leaderboard, which is every single node in the leaderboard. This means that to make a proper leaderboard we should have at least one part that does not include a node name, we can still combine this with another query. For example: (dependencies library) and (dependents library pkg:github.com/sigstore/cosign) would create a leaderboard sorted by the number of dependencies a project has that is shared with cosign. We can also repeat this 2 part query multiple times, for example : dependencies library and dependents library would work as well.",
 			},
 			{
 				ID:      "17",
-				Content: "If the user, or you are not sure about what the node's name is, you can use the glob pattern to search for nodes. For example, if you want to search for all nodes that start with 'github.com/bitbomdev', you can use the pattern 'github.com/bitbomdev*'. Try to lean get as many nodes as possible, so if they tell you the name is mineifield, and maybe the org is bitbomdev, you can use '*minefield*', since it will match all nodes that contain minefield, since they are not sure about the org.",
+				Content: "If the user, or you are not sure about what the node's name is, you can use the glob pattern to search for nodes. For example, if you want to search for all nodes that start with 'github.com/sigstore', you can use the pattern 'github.com/sigstore*'. Try to get as many nodes as possible, so if they tell you the name is cosign, and maybe the org is sigstore, you can use '*cosign*', since it will match all nodes that contain cosign, since they are not sure about the org.",
 			},
 			{
 				ID:      "18",
@@ -259,7 +259,7 @@ func New() *cobra.Command {
 	o := &options{}
 	cmd := &cobra.Command{
 		Use:               "server",
-		Short:             "Start the minefield server for graph operations and queries",
+		Short:             "Start the Sapper server for graph operations and queries",
 		Args:              cobra.ExactArgs(0),
 		PersistentPreRunE: o.PersistentPreRunE,
 		RunE:              o.Run,
@@ -273,7 +273,7 @@ func NewServerCommand(storage graph.Storage, o *options) (*cobra.Command, error)
 	o.storage = storage
 	cmd := &cobra.Command{
 		Use:               "server",
-		Short:             "Start the minefield server for graph operations and queries",
+		Short:             "Start the Sapper server for graph operations and queries",
 		Args:              cobra.ExactArgs(0),
 		RunE:              o.Run,
 		DisableAutoGenTag: true,

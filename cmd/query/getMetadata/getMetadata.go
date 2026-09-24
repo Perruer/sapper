@@ -9,9 +9,9 @@ import (
 	"strconv"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -58,7 +58,7 @@ func New() *cobra.Command {
 // It configures flags for output file, server address, and output format.
 func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.outputFile, "output-file", "", "output file")
-	cmd.Flags().StringVar(&o.addr, "addr", defaultAddr, "address of the minefield server")
+	cmd.Flags().StringVar(&o.addr, "addr", defaultAddr, "address of the Sapper server")
 	cmd.Flags().StringVar(&o.output, "output", outputFormatJSON, "output format (json or table)")
 }
 

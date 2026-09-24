@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/bitbomdev/minefield/gen/api/v1"
+	v1 "github.com/Perruer/sapper/gen/api/v1"
 )
 
 // TestFormatNodeJSON tests the FormatNodeJSON function for 100% code coverage.

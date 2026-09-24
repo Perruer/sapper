@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/bitbomdev/minefield/pkg/graph"
+	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,7 +85,7 @@ func TestNew(t *testing.T) {
 				short string
 			}{
 				use:   "server",
-				short: "Start the minefield server for graph operations and queries",
+				short: "Start the Sapper server for graph operations and queries",
 			},
 		},
 	}
@@ -288,7 +288,7 @@ func TestNewServerCommand(t *testing.T) {
 				short string
 			}{
 				use:   "server",
-				short: "Start the minefield server for graph operations and queries",
+				short: "Start the Sapper server for graph operations and queries",
 			},
 		},
 	}

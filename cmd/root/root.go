@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/bitbomdev/minefield/cmd/cache"
-	"github.com/bitbomdev/minefield/cmd/ingest"
-	"github.com/bitbomdev/minefield/cmd/leaderboard"
-	"github.com/bitbomdev/minefield/cmd/query"
-	"github.com/bitbomdev/minefield/cmd/server"
-	llm "github.com/bitbomdev/minefield/cmd/llm"
+	"github.com/Perruer/sapper/cmd/cache"
+	"github.com/Perruer/sapper/cmd/ingest"
+	"github.com/Perruer/sapper/cmd/leaderboard"
+	"github.com/Perruer/sapper/cmd/query"
+	"github.com/Perruer/sapper/cmd/server"
+	llm "github.com/Perruer/sapper/cmd/llm"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 func New() *cobra.Command {
 	o := &options{}
 	rootCmd := &cobra.Command{
-		Use:               "minefield",
+		Use:               "sapper",
 		Short:             "Graphing SBOM's with the power of roaring bitmaps",
 		SilenceUsage:      true,
 		DisableAutoGenTag: true,

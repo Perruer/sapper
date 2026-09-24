@@ -82,7 +82,7 @@ func TestOptions_AddFlags(t *testing.T) {
 	addrFlag := flags.Lookup("addr")
 	assert.NotNil(t, addrFlag)
 	assert.Equal(t, "http://localhost:8089", addrFlag.DefValue)
-	assert.Equal(t, "Address of the minefield server", addrFlag.Usage)
+	assert.Equal(t, "Address of the Sapper server", addrFlag.Usage)
 }
 
 func TestOptions_clearCache(t *testing.T) {

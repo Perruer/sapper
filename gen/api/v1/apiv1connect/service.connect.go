@@ -8,7 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/bitbomdev/minefield/gen/api/v1"
+	v1 "github.com/Perruer/sapper/gen/api/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http "net/http"
 	strings "strings"
@@ -82,30 +82,6 @@ const (
 	HealthServiceCheckProcedure = "/api.v1.HealthService/Check"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	queryServiceServiceDescriptor                       = v1.File_api_v1_service_proto.Services().ByName("QueryService")
-	queryServiceQueryMethodDescriptor                   = queryServiceServiceDescriptor.Methods().ByName("Query")
-	cacheServiceServiceDescriptor                       = v1.File_api_v1_service_proto.Services().ByName("CacheService")
-	cacheServiceCacheMethodDescriptor                   = cacheServiceServiceDescriptor.Methods().ByName("Cache")
-	cacheServiceClearMethodDescriptor                   = cacheServiceServiceDescriptor.Methods().ByName("Clear")
-	leaderboardServiceServiceDescriptor                 = v1.File_api_v1_service_proto.Services().ByName("LeaderboardService")
-	leaderboardServiceCustomLeaderboardMethodDescriptor = leaderboardServiceServiceDescriptor.Methods().ByName("CustomLeaderboard")
-	leaderboardServiceAllKeysMethodDescriptor           = leaderboardServiceServiceDescriptor.Methods().ByName("AllKeys")
-	graphServiceServiceDescriptor                       = v1.File_api_v1_service_proto.Services().ByName("GraphService")
-	graphServiceGetNodeMethodDescriptor                 = graphServiceServiceDescriptor.Methods().ByName("GetNode")
-	graphServiceGetNodesByGlobMethodDescriptor          = graphServiceServiceDescriptor.Methods().ByName("GetNodesByGlob")
-	graphServiceGetNodeByNameMethodDescriptor           = graphServiceServiceDescriptor.Methods().ByName("GetNodeByName")
-	graphServiceAddNodeMethodDescriptor                 = graphServiceServiceDescriptor.Methods().ByName("AddNode")
-	graphServiceSetDependencyMethodDescriptor           = graphServiceServiceDescriptor.Methods().ByName("SetDependency")
-	ingestServiceServiceDescriptor                      = v1.File_api_v1_service_proto.Services().ByName("IngestService")
-	ingestServiceIngestSBOMMethodDescriptor             = ingestServiceServiceDescriptor.Methods().ByName("IngestSBOM")
-	ingestServiceIngestVulnerabilityMethodDescriptor    = ingestServiceServiceDescriptor.Methods().ByName("IngestVulnerability")
-	ingestServiceIngestScorecardMethodDescriptor        = ingestServiceServiceDescriptor.Methods().ByName("IngestScorecard")
-	healthServiceServiceDescriptor                      = v1.File_api_v1_service_proto.Services().ByName("HealthService")
-	healthServiceCheckMethodDescriptor                  = healthServiceServiceDescriptor.Methods().ByName("Check")
-)
-
 // QueryServiceClient is a client for the api.v1.QueryService service.
 type QueryServiceClient interface {
 	Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResponse], error)
@@ -120,11 +96,12 @@ type QueryServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewQueryServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) QueryServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	queryServiceMethods := v1.File_api_v1_service_proto.Services().ByName("QueryService").Methods()
 	return &queryServiceClient{
 		query: connect.NewClient[v1.QueryRequest, v1.QueryResponse](
 			httpClient,
 			baseURL+QueryServiceQueryProcedure,
-			connect.WithSchema(queryServiceQueryMethodDescriptor),
+			connect.WithSchema(queryServiceMethods.ByName("Query")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -151,10 +128,11 @@ type QueryServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewQueryServiceHandler(svc QueryServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	queryServiceMethods := v1.File_api_v1_service_proto.Services().ByName("QueryService").Methods()
 	queryServiceQueryHandler := connect.NewUnaryHandler(
 		QueryServiceQueryProcedure,
 		svc.Query,
-		connect.WithSchema(queryServiceQueryMethodDescriptor),
+		connect.WithSchema(queryServiceMethods.ByName("Query")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.QueryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -189,17 +167,18 @@ type CacheServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewCacheServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) CacheServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	cacheServiceMethods := v1.File_api_v1_service_proto.Services().ByName("CacheService").Methods()
 	return &cacheServiceClient{
 		cache: connect.NewClient[emptypb.Empty, emptypb.Empty](
 			httpClient,
 			baseURL+CacheServiceCacheProcedure,
-			connect.WithSchema(cacheServiceCacheMethodDescriptor),
+			connect.WithSchema(cacheServiceMethods.ByName("Cache")),
 			connect.WithClientOptions(opts...),
 		),
 		clear: connect.NewClient[emptypb.Empty, emptypb.Empty](
 			httpClient,
 			baseURL+CacheServiceClearProcedure,
-			connect.WithSchema(cacheServiceClearMethodDescriptor),
+			connect.WithSchema(cacheServiceMethods.ByName("Clear")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -233,16 +212,17 @@ type CacheServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewCacheServiceHandler(svc CacheServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	cacheServiceMethods := v1.File_api_v1_service_proto.Services().ByName("CacheService").Methods()
 	cacheServiceCacheHandler := connect.NewUnaryHandler(
 		CacheServiceCacheProcedure,
 		svc.Cache,
-		connect.WithSchema(cacheServiceCacheMethodDescriptor),
+		connect.WithSchema(cacheServiceMethods.ByName("Cache")),
 		connect.WithHandlerOptions(opts...),
 	)
 	cacheServiceClearHandler := connect.NewUnaryHandler(
 		CacheServiceClearProcedure,
 		svc.Clear,
-		connect.WithSchema(cacheServiceClearMethodDescriptor),
+		connect.WithSchema(cacheServiceMethods.ByName("Clear")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.CacheService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -283,17 +263,18 @@ type LeaderboardServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewLeaderboardServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) LeaderboardServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	leaderboardServiceMethods := v1.File_api_v1_service_proto.Services().ByName("LeaderboardService").Methods()
 	return &leaderboardServiceClient{
 		customLeaderboard: connect.NewClient[v1.CustomLeaderboardRequest, v1.CustomLeaderboardResponse](
 			httpClient,
 			baseURL+LeaderboardServiceCustomLeaderboardProcedure,
-			connect.WithSchema(leaderboardServiceCustomLeaderboardMethodDescriptor),
+			connect.WithSchema(leaderboardServiceMethods.ByName("CustomLeaderboard")),
 			connect.WithClientOptions(opts...),
 		),
 		allKeys: connect.NewClient[emptypb.Empty, v1.AllKeysResponse](
 			httpClient,
 			baseURL+LeaderboardServiceAllKeysProcedure,
-			connect.WithSchema(leaderboardServiceAllKeysMethodDescriptor),
+			connect.WithSchema(leaderboardServiceMethods.ByName("AllKeys")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -327,16 +308,17 @@ type LeaderboardServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewLeaderboardServiceHandler(svc LeaderboardServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	leaderboardServiceMethods := v1.File_api_v1_service_proto.Services().ByName("LeaderboardService").Methods()
 	leaderboardServiceCustomLeaderboardHandler := connect.NewUnaryHandler(
 		LeaderboardServiceCustomLeaderboardProcedure,
 		svc.CustomLeaderboard,
-		connect.WithSchema(leaderboardServiceCustomLeaderboardMethodDescriptor),
+		connect.WithSchema(leaderboardServiceMethods.ByName("CustomLeaderboard")),
 		connect.WithHandlerOptions(opts...),
 	)
 	leaderboardServiceAllKeysHandler := connect.NewUnaryHandler(
 		LeaderboardServiceAllKeysProcedure,
 		svc.AllKeys,
-		connect.WithSchema(leaderboardServiceAllKeysMethodDescriptor),
+		connect.WithSchema(leaderboardServiceMethods.ByName("AllKeys")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.LeaderboardService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -380,35 +362,36 @@ type GraphServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewGraphServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) GraphServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	graphServiceMethods := v1.File_api_v1_service_proto.Services().ByName("GraphService").Methods()
 	return &graphServiceClient{
 		getNode: connect.NewClient[v1.GetNodeRequest, v1.GetNodeResponse](
 			httpClient,
 			baseURL+GraphServiceGetNodeProcedure,
-			connect.WithSchema(graphServiceGetNodeMethodDescriptor),
+			connect.WithSchema(graphServiceMethods.ByName("GetNode")),
 			connect.WithClientOptions(opts...),
 		),
 		getNodesByGlob: connect.NewClient[v1.GetNodesByGlobRequest, v1.GetNodesByGlobResponse](
 			httpClient,
 			baseURL+GraphServiceGetNodesByGlobProcedure,
-			connect.WithSchema(graphServiceGetNodesByGlobMethodDescriptor),
+			connect.WithSchema(graphServiceMethods.ByName("GetNodesByGlob")),
 			connect.WithClientOptions(opts...),
 		),
 		getNodeByName: connect.NewClient[v1.GetNodeByNameRequest, v1.GetNodeByNameResponse](
 			httpClient,
 			baseURL+GraphServiceGetNodeByNameProcedure,
-			connect.WithSchema(graphServiceGetNodeByNameMethodDescriptor),
+			connect.WithSchema(graphServiceMethods.ByName("GetNodeByName")),
 			connect.WithClientOptions(opts...),
 		),
 		addNode: connect.NewClient[v1.AddNodeRequest, v1.AddNodeResponse](
 			httpClient,
 			baseURL+GraphServiceAddNodeProcedure,
-			connect.WithSchema(graphServiceAddNodeMethodDescriptor),
+			connect.WithSchema(graphServiceMethods.ByName("AddNode")),
 			connect.WithClientOptions(opts...),
 		),
 		setDependency: connect.NewClient[v1.SetDependencyRequest, emptypb.Empty](
 			httpClient,
 			baseURL+GraphServiceSetDependencyProcedure,
-			connect.WithSchema(graphServiceSetDependencyMethodDescriptor),
+			connect.WithSchema(graphServiceMethods.ByName("SetDependency")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -463,34 +446,35 @@ type GraphServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewGraphServiceHandler(svc GraphServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	graphServiceMethods := v1.File_api_v1_service_proto.Services().ByName("GraphService").Methods()
 	graphServiceGetNodeHandler := connect.NewUnaryHandler(
 		GraphServiceGetNodeProcedure,
 		svc.GetNode,
-		connect.WithSchema(graphServiceGetNodeMethodDescriptor),
+		connect.WithSchema(graphServiceMethods.ByName("GetNode")),
 		connect.WithHandlerOptions(opts...),
 	)
 	graphServiceGetNodesByGlobHandler := connect.NewUnaryHandler(
 		GraphServiceGetNodesByGlobProcedure,
 		svc.GetNodesByGlob,
-		connect.WithSchema(graphServiceGetNodesByGlobMethodDescriptor),
+		connect.WithSchema(graphServiceMethods.ByName("GetNodesByGlob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	graphServiceGetNodeByNameHandler := connect.NewUnaryHandler(
 		GraphServiceGetNodeByNameProcedure,
 		svc.GetNodeByName,
-		connect.WithSchema(graphServiceGetNodeByNameMethodDescriptor),
+		connect.WithSchema(graphServiceMethods.ByName("GetNodeByName")),
 		connect.WithHandlerOptions(opts...),
 	)
 	graphServiceAddNodeHandler := connect.NewUnaryHandler(
 		GraphServiceAddNodeProcedure,
 		svc.AddNode,
-		connect.WithSchema(graphServiceAddNodeMethodDescriptor),
+		connect.WithSchema(graphServiceMethods.ByName("AddNode")),
 		connect.WithHandlerOptions(opts...),
 	)
 	graphServiceSetDependencyHandler := connect.NewUnaryHandler(
 		GraphServiceSetDependencyProcedure,
 		svc.SetDependency,
-		connect.WithSchema(graphServiceSetDependencyMethodDescriptor),
+		connect.WithSchema(graphServiceMethods.ByName("SetDependency")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.GraphService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -550,23 +534,24 @@ type IngestServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewIngestServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) IngestServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	ingestServiceMethods := v1.File_api_v1_service_proto.Services().ByName("IngestService").Methods()
 	return &ingestServiceClient{
 		ingestSBOM: connect.NewClient[v1.IngestSBOMRequest, emptypb.Empty](
 			httpClient,
 			baseURL+IngestServiceIngestSBOMProcedure,
-			connect.WithSchema(ingestServiceIngestSBOMMethodDescriptor),
+			connect.WithSchema(ingestServiceMethods.ByName("IngestSBOM")),
 			connect.WithClientOptions(opts...),
 		),
 		ingestVulnerability: connect.NewClient[v1.IngestVulnerabilityRequest, emptypb.Empty](
 			httpClient,
 			baseURL+IngestServiceIngestVulnerabilityProcedure,
-			connect.WithSchema(ingestServiceIngestVulnerabilityMethodDescriptor),
+			connect.WithSchema(ingestServiceMethods.ByName("IngestVulnerability")),
 			connect.WithClientOptions(opts...),
 		),
 		ingestScorecard: connect.NewClient[v1.IngestScorecardRequest, emptypb.Empty](
 			httpClient,
 			baseURL+IngestServiceIngestScorecardProcedure,
-			connect.WithSchema(ingestServiceIngestScorecardMethodDescriptor),
+			connect.WithSchema(ingestServiceMethods.ByName("IngestScorecard")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -607,22 +592,23 @@ type IngestServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewIngestServiceHandler(svc IngestServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	ingestServiceMethods := v1.File_api_v1_service_proto.Services().ByName("IngestService").Methods()
 	ingestServiceIngestSBOMHandler := connect.NewUnaryHandler(
 		IngestServiceIngestSBOMProcedure,
 		svc.IngestSBOM,
-		connect.WithSchema(ingestServiceIngestSBOMMethodDescriptor),
+		connect.WithSchema(ingestServiceMethods.ByName("IngestSBOM")),
 		connect.WithHandlerOptions(opts...),
 	)
 	ingestServiceIngestVulnerabilityHandler := connect.NewUnaryHandler(
 		IngestServiceIngestVulnerabilityProcedure,
 		svc.IngestVulnerability,
-		connect.WithSchema(ingestServiceIngestVulnerabilityMethodDescriptor),
+		connect.WithSchema(ingestServiceMethods.ByName("IngestVulnerability")),
 		connect.WithHandlerOptions(opts...),
 	)
 	ingestServiceIngestScorecardHandler := connect.NewUnaryHandler(
 		IngestServiceIngestScorecardProcedure,
 		svc.IngestScorecard,
-		connect.WithSchema(ingestServiceIngestScorecardMethodDescriptor),
+		connect.WithSchema(ingestServiceMethods.ByName("IngestScorecard")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.IngestService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -668,11 +654,12 @@ type HealthServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewHealthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) HealthServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	healthServiceMethods := v1.File_api_v1_service_proto.Services().ByName("HealthService").Methods()
 	return &healthServiceClient{
 		check: connect.NewClient[emptypb.Empty, v1.HealthCheckResponse](
 			httpClient,
 			baseURL+HealthServiceCheckProcedure,
-			connect.WithSchema(healthServiceCheckMethodDescriptor),
+			connect.WithSchema(healthServiceMethods.ByName("Check")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -699,10 +686,11 @@ type HealthServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewHealthServiceHandler(svc HealthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	healthServiceMethods := v1.File_api_v1_service_proto.Services().ByName("HealthService").Methods()
 	healthServiceCheckHandler := connect.NewUnaryHandler(
 		HealthServiceCheckProcedure,
 		svc.Check,
-		connect.WithSchema(healthServiceCheckMethodDescriptor),
+		connect.WithSchema(healthServiceMethods.ByName("Check")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/api.v1.HealthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/bitbomdev/minefield/pkg/graph"
+	"github.com/Perruer/sapper/pkg/graph"
 )
 
 const (

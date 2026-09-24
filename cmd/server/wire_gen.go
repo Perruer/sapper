@@ -7,7 +7,7 @@
 package server
 
 import (
-	"github.com/bitbomdev/minefield/pkg/graph"
+	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/spf13/cobra"
 )
 

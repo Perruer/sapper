@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	v1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	v1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -28,7 +28,7 @@ type options struct {
 func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().IntVarP(&o.maxOutput, "max-output", "m", 10, "Specify the maximum number of keys to display")
 	cmd.Flags().BoolVarP(&o.showInfo, "show-info", "i", true, "Toggle display of additional information for each key")
-	cmd.Flags().StringVarP(&o.addr, "addr", "a", "http://localhost:8089", "Address of the Minefield server")
+	cmd.Flags().StringVarP(&o.addr, "addr", "a", "http://localhost:8089", "Address of the Sapper server")
 	cmd.Flags().StringVarP(&o.output, "output", "o", "table", "Output format (table or json)")
 }
 

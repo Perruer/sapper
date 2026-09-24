@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	apiv1 "github.com/bitbomdev/minefield/api/v1"
-	service "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/pkg/graph"
-	"github.com/bitbomdev/minefield/pkg/storages"
+	apiv1 "github.com/Perruer/sapper/api/v1"
+	service "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/Perruer/sapper/pkg/storages"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

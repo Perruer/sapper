@@ -6,23 +6,23 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/spf13/cobra"
 )
 
 type options struct {
-	addr                string // Address of the minefield server
+	addr                string // Address of the Sapper server
 	ingestServiceClient apiv1connect.IngestServiceClient
 }
 
 const (
-	DefaultAddr = "http://localhost:8089" // Default address of the minefield server
+	DefaultAddr = "http://localhost:8089" // Default address of the Sapper server
 )
 
 func (o *options) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&o.addr, "addr", DefaultAddr, "Address of the minefield server")
+	cmd.Flags().StringVar(&o.addr, "addr", DefaultAddr, "Address of the Sapper server")
 }
 func (o *options) Run(_ *cobra.Command, args []string) error {
 	if o.ingestServiceClient == nil {

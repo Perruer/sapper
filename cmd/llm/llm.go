@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/olekukonko/tablewriter"
 	chromadb "github.com/philippgille/chromem-go"
 	"github.com/sashabaranov/go-openai"
@@ -71,7 +71,7 @@ type options struct {
 func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&o.maxOutput, "max-output", 10, "maximum number of results to display")
 	cmd.Flags().BoolVar(&o.showInfo, "show-info", true, "display the info column")
-	cmd.Flags().StringVar(&o.addr, "addr", "http://localhost:8089", "address of the minefield server")
+	cmd.Flags().StringVar(&o.addr, "addr", "http://localhost:8089", "address of the Sapper server")
 	cmd.Flags().StringVar(&o.vectorDBPath, "vector-db-path", "./db", "Path to the vector database")
 	cmd.Flags().StringVar(&o.output, "output", "table", "output format (table or json)")
 }

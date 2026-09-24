@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	v1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	v1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -230,7 +230,7 @@ func TestOptions_AddFlags(t *testing.T) {
 			name:         "addr",
 			shorthand:    "a",
 			defaultValue: "http://localhost:8089",
-			usage:        "Address of the Minefield server",
+			usage:        "Address of the Sapper server",
 		},
 		{
 			name:         "output",

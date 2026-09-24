@@ -40,8 +40,8 @@ jobs:
         run: |
           TAG="${GIT_TAG:-latest}"
           docker build \
-                -t ghcr.io/bitbomdev/minefield:latest \
-                -t ghcr.io/bitbomdev/minefield:"${TAG}" \
+                -t ghcr.io/perruer/sapper:latest \
+                -t ghcr.io/perruer/sapper:"${TAG}" \
                 .
 
       - name: Log in to GHCR
@@ -54,5 +54,5 @@ jobs:
       - name: Push Docker Images
         run: |
           TAG=${GIT_TAG:-latest}
-          docker push ghcr.io/bitbomdev/minefield:latest
-          docker push ghcr.io/bitbomdev/minefield:${TAG}
+          docker push ghcr.io/perruer/sapper:latest
+          docker push ghcr.io/perruer/sapper:${TAG}

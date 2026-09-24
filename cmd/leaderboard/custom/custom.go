@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVar(&o.all, "all", false, "show the queries output for each node")
 	cmd.Flags().IntVar(&o.maxOutput, "max-output", 10, "max number of outputs to display")
 	cmd.Flags().BoolVar(&o.showInfo, "show-info", true, "display the info column")
-	cmd.Flags().StringVarP(&o.addr, "addr", "a", "http://localhost:8089", "Address of the Minefield server")
+	cmd.Flags().StringVarP(&o.addr, "addr", "a", "http://localhost:8089", "Address of the Sapper server")
 	cmd.Flags().StringVarP(&o.output, "output", "o", "table", "Output format (table or json)")
 }
 

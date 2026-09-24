@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 
 build: wire
-	CGO_ENABLED=1 go build -o bin/minefield main.go
+	CGO_ENABLED=1 go build -o bin/sapper main.go
 
 test:
 	go test -v -coverprofile=coverage.out ./...
@@ -26,7 +26,7 @@ docker-logs:
 	docker compose logs -f
 
 docker-build:
-	docker build -t ghcr.io/bitbomdev/minefield:latest .
+	docker build -t ghcr.io/perruer/sapper:latest .
 
 go-mod-tidy:
 	go mod tidy

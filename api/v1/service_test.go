@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	service "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/pkg/graph"
+	service "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/emptypb"

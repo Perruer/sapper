@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
-	DefaultAddr = "http://localhost:8089" // Default address of the minefield server
+	DefaultAddr = "http://localhost:8089" // Default address of the Sapper server
 )
 
 // options for the cache command
 type options struct {
 	clear bool   // Clear all cached graph data
-	addr  string // Address of the minefield server
+	addr  string // Address of the Sapper server
 
 	cacheServiceClient apiv1connect.CacheServiceClient
 }
@@ -26,7 +26,7 @@ type options struct {
 // AddFlags adds command-line flags to the provided cobra command.
 func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVar(&o.clear, "clear", false, "Clear all cached graph data")
-	cmd.Flags().StringVar(&o.addr, "addr", DefaultAddr, "Address of the minefield server")
+	cmd.Flags().StringVar(&o.addr, "addr", DefaultAddr, "Address of the Sapper server")
 }
 
 // Run executes the cache command with the provided arguments.

@@ -3,10 +3,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=1 go build -o /app/minefield main.go
+RUN CGO_ENABLED=1 go build -o /app/sapper main.go
 
 FROM cgr.dev/chainguard/glibc-dynamic
 WORKDIR /app
-COPY --from=builder /app/minefield /app/minefield
+COPY --from=builder /app/sapper /app/sapper
 
-ENTRYPOINT ["/app/minefield"]
+ENTRYPOINT ["/app/sapper"]

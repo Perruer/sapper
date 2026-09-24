@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )

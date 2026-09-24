@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"connectrpc.com/connect"
-	"github.com/bitbomdev/minefield/cmd/helpers"
-	apiv1 "github.com/bitbomdev/minefield/gen/api/v1"
-	"github.com/bitbomdev/minefield/gen/api/v1/apiv1connect"
+	"github.com/Perruer/sapper/cmd/helpers"
+	apiv1 "github.com/Perruer/sapper/gen/api/v1"
+	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ type options struct {
 // AddFlags adds command-line flags to the provided cobra command.
 func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&o.maxOutput, "max-output", 10, "maximum number of results to display")
-	cmd.Flags().StringVar(&o.addr, "addr", "http://localhost:8089", "address of the minefield server")
+	cmd.Flags().StringVar(&o.addr, "addr", "http://localhost:8089", "address of the Sapper server")
 	cmd.Flags().StringVar(&o.output, "output", "table", "output format (table or json)")
 }
 

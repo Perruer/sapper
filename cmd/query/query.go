@@ -1,9 +1,9 @@
 package query
 
 import (
-	"github.com/bitbomdev/minefield/cmd/query/custom"
-	"github.com/bitbomdev/minefield/cmd/query/getMetadata"
-	"github.com/bitbomdev/minefield/cmd/query/globsearch"
+	"github.com/Perruer/sapper/cmd/query/custom"
+	"github.com/Perruer/sapper/cmd/query/getMetadata"
+	"github.com/Perruer/sapper/cmd/query/globsearch"
 	"github.com/spf13/cobra"
 )
 
