@@ -117,3 +117,41 @@ func TestVEXRejectsUnknownStatus(t *testing.T) {
 	_, err := ingest.VEX(s, []byte(`{"statements":[{"vulnerability":{"name":"CVE-1"},"products":[{"@id":"x"}],"status":"maybe"}]}`))
 	assert.Error(t, err)
 }
+
+func TestBuildMergesRecordsOfTheSameCVE(t *testing.T) {
+	s := setupGraph(t)
+	// A second OSV record for the same issue, as the Go database publishes next to GitHub's
+	goRecord, _ := json.Marshal(ingest.Vulnerability{ID: "GO-2026-0100", Aliases: []string{"CVE-2026-0001", "GHSA-aaaa-bbbb-cccc"}})
+	n, err := graph.AddNode(s, tools.VulnerabilityType, goRecord, "GO-2026-0100")
+	require.NoError(t, err)
+	libID, err := s.NameToID("pkg:golang/libY@1.0.0")
+	require.NoError(t, err)
+	lib, err := s.GetNode(libID)
+	require.NoError(t, err)
+	require.NoError(t, lib.SetDependency(s, n))
+
+	findings, err := Build(s, Options{Vulnerability: "CVE-2026-0001"})
+	require.NoError(t, err)
+	require.Len(t, findings, 1, "one finding per vulnerability, whatever the number of records")
+	f := findings[0]
+	assert.Equal(t, "GHSA-aaaa-bbbb-cccc", f.ID)
+	assert.Equal(t, "CRITICAL", f.Severity)
+	assert.ElementsMatch(t, []string{"CVE-2026-0001", "GO-2026-0100"}, f.Aliases)
+	assert.Equal(t, []string{"pkg:golang/libX@1.0.0", "pkg:golang/libY@1.0.0"}, f.Packages)
+	assert.Len(t, f.Products, 2)
+}
+
+func TestBuildFindsAMergedFindingByAnyID(t *testing.T) {
+	s := setupGraph(t)
+	goRecord, _ := json.Marshal(ingest.Vulnerability{ID: "GO-2026-0100", Aliases: []string{"CVE-2026-0001"}})
+	n, err := graph.AddNode(s, tools.VulnerabilityType, goRecord, "GO-2026-0100")
+	require.NoError(t, err)
+	libID, _ := s.NameToID("pkg:golang/libY@1.0.0")
+	lib, _ := s.GetNode(libID)
+	require.NoError(t, lib.SetDependency(s, n))
+
+	findings, err := Build(s, Options{Vulnerability: "go-2026-0100"})
+	require.NoError(t, err)
+	require.Len(t, findings, 1)
+	assert.Equal(t, "GHSA-aaaa-bbbb-cccc", findings[0].ID)
+}

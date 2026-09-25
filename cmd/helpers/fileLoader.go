@@ -5,143 +5,108 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
-// LoadDataFromPath takes in a directory or file path and processes the data into the storage.
-// The data can either be JSON files or ZIP files containing JSON files.
-
+// Data is the content of one JSON document and where it came from.
 type Data struct {
 	Path string
 	Data []byte
 }
 
-func LoadDataFromPath(path string) ([]Data, error) {
-	info, err := os.Stat(path)
+// maxZipEntrySize caps one document read from a ZIP archive, so a crafted archive cannot exhaust
+// memory. The largest OSV records are a few megabytes.
+const maxZipEntrySize = 64 << 20
+
+// LoadDataFromPath reads JSON documents from a file, a directory (recursively) or a ZIP archive
+// such as the osv.dev dumps. Files with other extensions are skipped.
+func LoadDataFromPath(p string) ([]Data, error) {
+	info, err := os.Stat(p)
 	if err != nil {
-		return nil, fmt.Errorf("error accessing path %s: %w", path, err)
+		return nil, fmt.Errorf("error accessing path %s: %w", p, err)
 	}
-
-	result := []Data{}
-
-	var errors []error
 
 	if info.IsDir() {
-		entries, err := os.ReadDir(path)
+		entries, err := os.ReadDir(p)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read directory %s: %w", path, err)
+			return nil, fmt.Errorf("failed to read directory %s: %w", p, err)
 		}
+		result := []Data{}
+		var errs []error
 		for _, entry := range entries {
-			entryPath := filepath.Join(path, entry.Name())
-			subResult, err := LoadDataFromPath(entryPath)
+			entryPath := filepath.Join(p, entry.Name())
+			sub, err := LoadDataFromPath(entryPath)
 			if err != nil {
-				errors = append(errors, fmt.Errorf("failed to load data from path %s: %w", entryPath, err))
-			} else {
-				result = append(result, subResult...)
+				errs = append(errs, fmt.Errorf("failed to load data from path %s: %w", entryPath, err))
+				continue
 			}
-			if err != nil {
-				errors = append(errors, fmt.Errorf("failed to ingest data from path %s: %w", entryPath, err))
-			}
+			result = append(result, sub...)
 		}
-	} else {
-		switch filepath.Ext(path) {
-		case ".zip":
-			subResult, err := processZipFile(path)
-			if err != nil {
-				errors = append(errors, fmt.Errorf("failed to process zip file %s: %w", path, err))
-			} else {
-				result = subResult
-			}
-		case ".json":
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read JSON file %s: %w", path, err)
-			}
-			result = append(result, Data{Path: path, Data: data})
+		if len(errs) > 0 {
+			return nil, fmt.Errorf("errors occurred during data ingestion: %v", errs)
 		}
+		return result, nil
 	}
 
-	if len(errors) > 0 {
-		return nil, fmt.Errorf("errors occurred during data ingestion: %v", errors)
+	switch strings.ToLower(filepath.Ext(p)) {
+	case ".zip":
+		result, err := readZipFile(p)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process zip file %s: %w", p, err)
+		}
+		return result, nil
+	case ".json":
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read JSON file %s: %w", p, err)
+		}
+		return []Data{{Path: p, Data: data}}, nil
+	default:
+		return []Data{}, nil
 	}
-
-	return result, nil
 }
 
-// processZipFile safely extracts files from a ZIP archive, preventing Zip Slip.
-func processZipFile(filePath string) ([]Data, error) {
+// readZipFile reads the JSON documents of a ZIP archive in memory. Nothing is extracted to disk,
+// so entry names cannot point outside a folder (Zip Slip) and no temporary files are left behind.
+func readZipFile(filePath string) ([]Data, error) {
 	r, err := zip.OpenReader(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open zip file %s: %w", filePath, err)
 	}
 	defer r.Close()
 
-	tempDir, err := os.MkdirTemp("", "unzipped")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp directory: %w", err)
-	}
-	// Ensure the temp directory is removed in case of an error.
-	defer func() {
-		if err != nil {
-			os.RemoveAll(tempDir)
-		}
-	}()
-
+	result := []Data{}
 	for _, f := range r.File {
-		// Clean the file name to remove any path traversal.
-		cleanName := filepath.Clean(f.Name)
-
-		// Prevent absolute paths.
-		if filepath.IsAbs(cleanName) {
-			return nil, fmt.Errorf("invalid file path %s: absolute paths are not allowed", f.Name)
-		}
-
-		// Resolve the absolute path.
-		extractedFilePath := filepath.Join(tempDir, cleanName)
-		absExtractedPath, err := filepath.Abs(extractedFilePath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get absolute path for %s: %w", extractedFilePath, err)
-		}
-
-		absTempDir, err := filepath.Abs(tempDir)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get absolute path for temp directory: %w", err)
-		}
-
-		// Ensure that the extracted path is within the temp directory.
-		if !strings.HasPrefix(absExtractedPath, absTempDir+string(os.PathSeparator)) {
-			return nil, fmt.Errorf("invalid file path %s: outside of the extraction directory", f.Name)
-		}
-
-		// Create necessary directories.
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(absExtractedPath, os.ModePerm); err != nil {
-				return nil, fmt.Errorf("failed to create directory %s: %w", absExtractedPath, err)
-			}
+		if f.FileInfo().IsDir() || !strings.EqualFold(path.Ext(f.Name), ".json") {
 			continue
-		} else {
-			if err := os.MkdirAll(filepath.Dir(absExtractedPath), os.ModePerm); err != nil {
-				return nil, fmt.Errorf("failed to create directory for file %s: %w", absExtractedPath, err)
-			}
 		}
-
-		rc, err := f.Open()
+		if f.UncompressedSize64 > maxZipEntrySize {
+			return nil, fmt.Errorf("%s in %s is larger than %d bytes", f.Name, filePath, maxZipEntrySize)
+		}
+		data, err := readZipEntry(f)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open file %s in zip: %w", f.Name, err)
+			return nil, err
 		}
-		defer rc.Close()
-
-		outFile, err := os.Create(absExtractedPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create file %s: %w", absExtractedPath, err)
-		}
-		defer outFile.Close()
-
-		if _, err := io.Copy(outFile, rc); err != nil {
-			return nil, fmt.Errorf("failed to copy file %s: %w", absExtractedPath, err)
-		}
+		result = append(result, Data{Path: filePath + "!" + f.Name, Data: data})
 	}
+	return result, nil
+}
 
-	return LoadDataFromPath(tempDir)
+func readZipEntry(f *zip.File) ([]byte, error) {
+	rc, err := f.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %s in zip: %w", f.Name, err)
+	}
+	defer rc.Close()
+	// The header can lie about the size; never read more than the limit.
+	data, err := io.ReadAll(io.LimitReader(rc, maxZipEntrySize+1))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s in zip: %w", f.Name, err)
+	}
+	if len(data) > maxZipEntrySize {
+		return nil, fmt.Errorf("%s is larger than %d bytes", f.Name, maxZipEntrySize)
+	}
+	return data, nil
 }

@@ -78,8 +78,53 @@ type PairedVuln struct {
 	Vuln Vulnerability
 }
 
-// Vulnerabilities processes the vulnerabilityType data and adds it to the storage.
+// LibraryIndex finds library nodes by package name. It keeps node IDs only: nodes are read fresh
+// before they change, because a stale copy would overwrite edges added since the index was built.
+type LibraryIndex struct {
+	byName map[string][]indexedPackage
+}
+
+type indexedPackage struct {
+	id   uint32
+	info PackageInfo
+}
+
+// BuildLibraryIndex reads the graph once and indexes its library nodes.
+func BuildLibraryIndex(storage graph.Storage) (*LibraryIndex, error) {
+	keys, err := storage.GetAllKeys()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all keys: %w", err)
+	}
+	nodes, err := storage.GetNodes(keys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nodes from storage: %w", err)
+	}
+	idx := &LibraryIndex{byName: map[string][]indexedPackage{}}
+	for _, node := range nodes {
+		if node == nil || node.Type != tools.LibraryType || !strings.HasPrefix(node.Name, pkg) {
+			continue
+		}
+		info, err := PURLToPackage(node.Name)
+		if err != nil {
+			continue
+		}
+		idx.byName[info.Name] = append(idx.byName[info.Name], indexedPackage{id: node.ID, info: info})
+	}
+	return idx, nil
+}
+
+// Vulnerabilities adds an OSV record to the graph and links it to the library nodes it affects.
 func Vulnerabilities(storage graph.Storage, data []byte) error {
+	idx, err := BuildLibraryIndex(storage)
+	if err != nil {
+		return err
+	}
+	return VulnerabilitiesWithIndex(storage, data, idx)
+}
+
+// VulnerabilitiesWithIndex is Vulnerabilities with a prebuilt index, for loading many OSV records.
+// The index must be rebuilt after library nodes are added.
+func VulnerabilitiesWithIndex(storage graph.Storage, data []byte, idx *LibraryIndex) error {
 	if len(data) == 0 {
 		return fmt.Errorf("data is empty")
 	}
@@ -88,68 +133,35 @@ func Vulnerabilities(storage graph.Storage, data []byte) error {
 	if err := json.Unmarshal(data, &vuln); err != nil {
 		return fmt.Errorf("failed to unmarshal vulnerabilityType data: %w", err)
 	}
+	vulnData, err := json.Marshal(vuln)
+	if err != nil {
+		return fmt.Errorf("failed to marshal vulnerability: %w", err)
+	}
 
-	errors := []error{}
-
-	vulnMap := map[string][]Vulnerability{}
-
+	seen := map[uint32]bool{}
 	for _, affected := range vuln.Affected {
-		vulnMap[affected.Package.Name] = append(vulnMap[affected.Package.Name], vuln)
-	}
+		for _, candidate := range idx.byName[affected.Package.Name] {
+			if seen[candidate.id] || !isPackageAffected(vuln, candidate.info) {
+				continue
+			}
+			seen[candidate.id] = true
 
-	if len(errors) > 0 {
-		return fmt.Errorf("errors occurred during vulnerabilities ingestion: %v", errors)
-	}
-
-	keys, err := storage.GetAllKeys()
-	if err != nil {
-		return fmt.Errorf("failed to get all keys: %w", err)
-	}
-
-	nodes, err := storage.GetNodes(keys)
-	if err != nil {
-		return fmt.Errorf("failed to get nodes from storage: %w", err)
-	}
-
-	for _, node := range nodes {
-		if node.Type == tools.LibraryType && strings.HasPrefix(node.Name, pkg) {
-			pkgInfo, err := PURLToPackage(node.Name)
+			vulnNode, err := graph.AddNode(storage, tools.VulnerabilityType, vulnData, vuln.ID)
 			if err != nil {
-				continue
+				return fmt.Errorf("failed to add vulnerabilityType node to storage: %w", err)
 			}
-			vulnsData, ok := vulnMap[pkgInfo.Name]
-			if !ok {
-				continue
+			node, err := storage.GetNode(candidate.id)
+			if err != nil {
+				return fmt.Errorf("failed to get node %d: %w", candidate.id, err)
 			}
-			if len(vulnsData) == 0 {
-				continue
-			}
-			for _, vuln := range vulnsData {
-				// We are using the vuln ID from the map instead of the vulnID from the vuln data, since the map key could be an alias of a vulnerabilityType ID
-				vulnData, err := json.Marshal(vuln)
-				if err != nil {
-					errors = append(errors, err)
-					continue
-				}
-
-				if isPackageAffected(vuln, pkgInfo) {
-					vulnNode, err := graph.AddNode(storage, tools.VulnerabilityType, vulnData, vuln.ID)
-					if err != nil {
-						return fmt.Errorf("failed to add vulnerabilityType node to storage: %w", err)
-					}
-
-					if err := node.SetDependency(storage, vulnNode); err != nil {
-						return fmt.Errorf("failed to add dependency edge to vulnerabilityType node: %w", err)
-					}
-				}
+			if err := node.SetDependency(storage, vulnNode); err != nil {
+				return fmt.Errorf("failed to add dependency edge to vulnerabilityType node: %w", err)
 			}
 		}
 	}
-
 	return nil
 }
 
-// isPackageAffected checks if the package is affected by the vulnerabilityType.
 func isPackageAffected(vuln Vulnerability, pkgInfo PackageInfo) bool {
 	for _, affected := range vuln.Affected {
 		if affected.Package.Name != pkgInfo.Name || affected.Package.Ecosystem != pkgInfo.Ecosystem {
@@ -182,7 +194,7 @@ func isVersionInRanges(version string, ranges []Range, ecosystem string) bool {
 		sortedEvents := sortRangeEvents(r.Events, r.Type, ecosystem)
 		for _, evt := range sortedEvents {
 			switch {
-			case evt.Introduced != "" && compareVersions(version, evt.Introduced, r.Type, ecosystem) >= 0:
+			case evt.Introduced == "0" || (evt.Introduced != "" && compareVersions(version, evt.Introduced, r.Type, ecosystem) >= 0):
 				vulnerable = true
 			case evt.Fixed != "" && compareVersions(version, evt.Fixed, r.Type, ecosystem) >= 0:
 				vulnerable = false
@@ -204,7 +216,13 @@ func sortRangeEvents(events []Event, eventType string, ecosystem string) []Event
 
 	// Compare the elements of the slice being sorted: sort.Slice swaps sortedEvents, so indexing
 	// the original events here would compare the wrong pairs.
+	// "introduced": "0" means "from the very first version" and comes before everything, including
+	// pre-releases such as Go pseudo-versions (0.0.0-2019...), which semver orders below 0.0.0.
 	sort.SliceStable(sortedEvents, func(i, j int) bool {
+		zi, zj := sortedEvents[i].Introduced == "0", sortedEvents[j].Introduced == "0"
+		if zi || zj {
+			return zi && !zj
+		}
 		vi := getVersionFromEvent(sortedEvents[i])
 		vj := getVersionFromEvent(sortedEvents[j])
 		return compareVersions(vi, vj, eventType, ecosystem) < 0
@@ -248,8 +266,96 @@ func compareVersions(v1, v2, eventType, ecosystem string) int {
 	}
 }
 
+// compareEcosystemVersions compares versions of ECOSYSTEM ranges (PyPI, Maven, RubyGems and others).
+// Versions that parse as semver are compared as semver; the rest segment by segment, numbers as
+// numbers, so 10.0 comes after 9.1, and 1.0rc1 before 1.0.
 func compareEcosystemVersions(v1, v2, _ string) int {
-	// Implement ecosystem-specific version comparison logic here.
-	// Placeholder implementation:
-	return strings.Compare(v1, v2)
+	if a, err := semver.NewVersion(v1); err == nil {
+		if b, err := semver.NewVersion(v2); err == nil {
+			return a.Compare(b)
+		}
+	}
+	return naturalCompare(v1, v2)
 }
+
+// versionSegments splits "1.10.0rc2" into [1 10 0 rc 2]: runs of digits and runs of letters.
+func versionSegments(v string) []string {
+	var parts []string
+	current := ""
+	digit := false
+	for _, r := range strings.ToLower(strings.TrimPrefix(v, "v")) {
+		isDigit := r >= '0' && r <= '9'
+		isLetter := r >= 'a' && r <= 'z'
+		if !isDigit && !isLetter {
+			if current != "" {
+				parts = append(parts, current)
+				current = ""
+			}
+			continue
+		}
+		if current != "" && isDigit != digit {
+			parts = append(parts, current)
+			current = ""
+		}
+		current += string(r)
+		digit = isDigit
+	}
+	if current != "" {
+		parts = append(parts, current)
+	}
+	return parts
+}
+
+func naturalCompare(v1, v2 string) int {
+	a, b := versionSegments(v1), versionSegments(v2)
+	for i := 0; i < len(a) || i < len(b); i++ {
+		switch {
+		case i >= len(a):
+			// 1.0 vs 1.0.1: longer wins, but 1.0 vs 1.0rc1: a trailing word marks a pre-release
+			if isWord(b[i]) && !isPostRelease(b[i]) {
+				return 1
+			}
+			return -1
+		case i >= len(b):
+			if isWord(a[i]) && !isPostRelease(a[i]) {
+				return -1
+			}
+			return 1
+		}
+		x, y := a[i], b[i]
+		if !isWord(x) && !isWord(y) {
+			nx, ny := strings.TrimLeft(x, "0"), strings.TrimLeft(y, "0")
+			if len(nx) != len(ny) {
+				if len(nx) < len(ny) {
+					return -1
+				}
+				return 1
+			}
+			if c := strings.Compare(nx, ny); c != 0 {
+				return c
+			}
+			continue
+		}
+		if isWord(x) != isWord(y) {
+			// 1.0.1 vs 1.0rc1: a number is a later release than a pre-release word
+			if isWord(x) {
+				if isPostRelease(x) {
+					return 1
+				}
+				return -1
+			}
+			if isPostRelease(y) {
+				return -1
+			}
+			return 1
+		}
+		if c := strings.Compare(x, y); c != 0 {
+			return c
+		}
+	}
+	return 0
+}
+
+func isWord(s string) bool { return s != "" && (s[0] < '0' || s[0] > '9') }
+
+func isPostRelease(s string) bool { return s == "post" || s == "p" || s == "pl" || s == "patch" }

@@ -254,3 +254,38 @@ func TestSortRangeEventsOrdersByVersion(t *testing.T) {
 		t.Error("2.0.5 not reported as affected")
 	}
 }
+
+func TestIntroducedZeroComesFirst(t *testing.T) {
+	// GO-2022-0536 (CVE-2019-9512) for golang.org/x/net: fixed in a 2019 pseudo-version
+	ranges := []Range{{Type: "SEMVER", Events: []Event{{Introduced: "0"}, {Fixed: "0.0.0-20190813141303-74dc4d7220e7"}}}}
+	if isVersionInRanges("v0.23.0", ranges, "Go") {
+		t.Error("golang.org/x/net v0.23.0 reported as affected by a 2019 fix")
+	}
+	if !isVersionInRanges("0.0.0-20190620200207-3b0461eec859", ranges, "Go") {
+		t.Error("a pseudo-version before the fix is not reported")
+	}
+}
+
+func TestEcosystemVersionOrder(t *testing.T) {
+	cases := []struct {
+		a, b string
+		want int
+	}{
+		{"10.0", "9.1", 1},
+		{"1.0rc1", "1.0", -1},
+		{"1.0", "1.0.1", -1},
+		{"2.0.0.post1", "2.0.0", 1},
+		{"1.2.3", "1.2.3", 0},
+		{"4.2.0-alpha", "4.2.0", -1},
+		{"1.10", "1.9", 1},
+	}
+	for _, c := range cases {
+		if got := compareEcosystemVersions(c.a, c.b, "PyPI"); (got > 0) != (c.want > 0) || (got < 0) != (c.want < 0) {
+			t.Errorf("compareEcosystemVersions(%q, %q) = %d, want sign %d", c.a, c.b, got, c.want)
+		}
+	}
+	ranges := []Range{{Type: "ECOSYSTEM", Events: []Event{{Introduced: "0"}, {Fixed: "9.1"}}}}
+	if isVersionInRanges("10.0", ranges, "PyPI") {
+		t.Error("10.0 reported as affected by a range fixed in 9.1")
+	}
+}

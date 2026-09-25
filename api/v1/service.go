@@ -18,6 +18,17 @@ import (
 type Service struct {
 	storage     graph.Storage
 	concurrency int32
+
+	// libraries indexes library nodes for loading OSV records; nil until needed and after
+	// SBOMs or nodes are added.
+	librariesMu sync.Mutex
+	libraries   *ingest.LibraryIndex
+}
+
+func (s *Service) invalidateLibraries() {
+	s.librariesMu.Lock()
+	s.libraries = nil
+	s.librariesMu.Unlock()
 }
 
 func NodeToServiceNode(node *graph.Node) (*service.Node, error) {
@@ -91,6 +102,7 @@ func (s *Service) GetNodesByGlob(ctx context.Context, req *connect.Request[servi
 
 func (s *Service) AddNode(ctx context.Context, req *connect.Request[service.AddNodeRequest]) (*connect.Response[service.AddNodeResponse], error) {
 	resultNode, err := graph.AddNode(s.storage, req.Msg.Node.Type, req.Msg.Node.Metadata, req.Msg.Node.Name)
+	s.invalidateLibraries()
 	if err != nil {
 		return nil, fmt.Errorf("failed to add node: %w", err)
 	}
@@ -314,6 +326,7 @@ func (s *Service) Check(ctx context.Context, req *connect.Request[emptypb.Empty]
 
 func (s *Service) IngestSBOM(ctx context.Context, req *connect.Request[service.IngestSBOMRequest]) (*connect.Response[emptypb.Empty], error) {
 	err := ingest.SBOM(s.storage, req.Msg.Sbom)
+	s.invalidateLibraries()
 	if err != nil {
 		return nil, fmt.Errorf("failed to ingest sbom: %w", err)
 	}
@@ -321,7 +334,16 @@ func (s *Service) IngestSBOM(ctx context.Context, req *connect.Request[service.I
 }
 
 func (s *Service) IngestVulnerability(ctx context.Context, req *connect.Request[service.IngestVulnerabilityRequest]) (*connect.Response[emptypb.Empty], error) {
-	err := ingest.Vulnerabilities(s.storage, req.Msg.Vulnerability)
+	s.librariesMu.Lock()
+	defer s.librariesMu.Unlock()
+	if s.libraries == nil {
+		idx, err := ingest.BuildLibraryIndex(s.storage)
+		if err != nil {
+			return nil, fmt.Errorf("failed to index libraries: %w", err)
+		}
+		s.libraries = idx
+	}
+	err := ingest.VulnerabilitiesWithIndex(s.storage, req.Msg.Vulnerability, s.libraries)
 	if err != nil {
 		return nil, fmt.Errorf("failed to ingest vulnerability: %w", err)
 	}

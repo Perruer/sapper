@@ -65,12 +65,19 @@ func Build(storage graph.Storage, opts Options) ([]Finding, error) {
 			continue
 		}
 		names := ingest.VulnerabilityNames(node)
-		if want != "" && !contains(names, want) {
-			continue
-		}
 		finding, err := buildFinding(storage, nodes, node, names)
 		if err != nil {
 			return nil, err
+		}
+		findings = append(findings, finding)
+	}
+
+	findings = mergeAliases(findings)
+	kept := findings[:0]
+	for _, finding := range findings {
+		// Filter after merging, so asking for any ID of a vulnerability gives all of its records
+		if want != "" && !contains(namesOf(finding), want) {
+			continue
 		}
 		if opts.KEVOnly && finding.KEV == nil {
 			continue
@@ -78,8 +85,9 @@ func Build(storage graph.Storage, opts Options) ([]Finding, error) {
 		if opts.MinEPSS > 0 && (finding.EPSS == nil || finding.EPSS.EPSS < opts.MinEPSS) {
 			continue
 		}
-		findings = append(findings, finding)
+		kept = append(kept, finding)
 	}
+	findings = kept
 
 	sort.SliceStable(findings, func(i, j int) bool {
 		a, b := findings[i], findings[j]
