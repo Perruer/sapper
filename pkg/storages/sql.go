@@ -38,6 +38,15 @@ type CacheStack struct {
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 }
 
+// CustomData holds data attached to the graph from other sources (KEV, EPSS, VEX...),
+// grouped like a Redis hash: tag and key name the hash, DataKey the field.
+type CustomData struct {
+	Tag     string `gorm:"primaryKey"`
+	Key     string `gorm:"primaryKey"`
+	DataKey string `gorm:"primaryKey"`
+	Value   []byte
+}
+
 type GlobalCounter struct {
 	ID        uint32    `gorm:"primaryKey;autoIncrement"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
@@ -98,7 +107,7 @@ func (s *SQLStorage) Close() error {
 
 // Migrate performs the database migrations for SQLStorage.
 func (s *SQLStorage) Migrate() error {
-	return s.DB.AutoMigrate(&KVStore{}, &CacheStack{}, &GlobalCounter{})
+	return s.DB.AutoMigrate(&KVStore{}, &CacheStack{}, &GlobalCounter{}, &CustomData{})
 }
 
 // NameToID converts a node name to its corresponding ID.
@@ -426,14 +435,28 @@ func (s *SQLStorage) GenerateID() (uint32, error) {
 
 // GetCustomData retrieves custom data based on tag and key.
 func (s *SQLStorage) GetCustomData(tag, key string) (map[string][]byte, error) {
-	// TODO: Implement using GORM
-	return nil, fmt.Errorf("not implemented")
+	var rows []CustomData
+	if err := s.DB.Where("tag = ? AND key = ?", tag, key).Find(&rows).Error; err != nil {
+		return nil, fmt.Errorf("failed to get custom data: %w", err)
+	}
+	result := make(map[string][]byte, len(rows))
+	for _, row := range rows {
+		result[row.DataKey] = row.Value
+	}
+	return result, nil
 }
 
 // AddOrUpdateCustomData adds or updates custom data based on tag, key, and data key.
 func (s *SQLStorage) AddOrUpdateCustomData(tag, key string, dataKey string, data []byte) error {
-	// TODO: Implement using GORM
-	return fmt.Errorf("not implemented")
+	row := CustomData{Tag: tag, Key: key, DataKey: dataKey, Value: data}
+	err := s.DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "tag"}, {Name: "key"}, {Name: "data_key"}},
+		DoUpdates: clause.AssignmentColumns([]string{"value"}),
+	}).Create(&row).Error
+	if err != nil {
+		return fmt.Errorf("failed to save custom data: %w", err)
+	}
+	return nil
 }
 
 // convertGlobToSQLPattern converts a glob pattern to a SQL LIKE pattern.

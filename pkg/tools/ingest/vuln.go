@@ -202,13 +202,13 @@ func sortRangeEvents(events []Event, eventType string, ecosystem string) []Event
 	sortedEvents := make([]Event, len(events))
 	copy(sortedEvents, events)
 
-	lessFunc := func(i, j int) bool {
-		vi := getVersionFromEvent(events[i])
-		vj := getVersionFromEvent(events[j])
+	// Compare the elements of the slice being sorted: sort.Slice swaps sortedEvents, so indexing
+	// the original events here would compare the wrong pairs.
+	sort.SliceStable(sortedEvents, func(i, j int) bool {
+		vi := getVersionFromEvent(sortedEvents[i])
+		vj := getVersionFromEvent(sortedEvents[j])
 		return compareVersions(vi, vj, eventType, ecosystem) < 0
-	}
-
-	sort.Slice(sortedEvents, lessFunc)
+	})
 	return sortedEvents
 }
 

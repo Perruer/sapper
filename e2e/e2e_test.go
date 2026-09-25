@@ -266,6 +266,30 @@ func Test_E2E(t *testing.T) {
 
 				})
 			}
+
+			t.Run("Report of a CVE with KEV data", func(t *testing.T) {
+				resp, err := s.Report(context.Background(), connect.NewRequest(&service.ReportRequest{Vulnerability: "CVE-2024-6345"}))
+				if !assert.NoError(t, err) || !assert.Len(t, resp.Msg.Findings, 1) {
+					return
+				}
+				f := resp.Msg.Findings[0]
+				assert.Equal(t, "GHSA-cx63-2mw6-8hw5", f.Id)
+				if assert.NotEmpty(t, f.Products) {
+					path := f.Products[0].Path
+					assert.Equal(t, "pkg:github.com/google/agi@", f.Products[0].Name)
+					assert.Equal(t, "pkg:pypi/setuptools@65.5.1", path[len(path)-1])
+				}
+				assert.Nil(t, f.Kev)
+
+				kev := `{"vulnerabilities":[{"cveID":"CVE-2024-6345","dateAdded":"2026-01-02","dueDate":"2026-01-23"}]}`
+				_, err = s.IngestKEV(context.Background(), connect.NewRequest(&service.IngestDataRequest{Data: []byte(kev)}))
+				assert.NoError(t, err)
+				all, err := s.Report(context.Background(), connect.NewRequest(&service.ReportRequest{}))
+				if assert.NoError(t, err) && assert.NotEmpty(t, all.Msg.Findings) {
+					assert.Equal(t, "GHSA-cx63-2mw6-8hw5", all.Msg.Findings[0].Id, "the KEV vulnerability comes first")
+					assert.Equal(t, "2026-01-23", all.Msg.Findings[0].Kev.DueDate)
+				}
+			})
 		})
 	}
 }

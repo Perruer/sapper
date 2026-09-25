@@ -269,7 +269,10 @@ func TestSQLAddAndGetDataToDB(t *testing.T) {
 		t.Fatalf("Setup failed: %v", err)
 	}
 	err = s.AddOrUpdateCustomData("test_tag", "test_key1", "test_data1", []byte("test_data1"))
-	assert.Error(t, err)
+	assert.NoError(t, err)
+	data, err := s.GetCustomData("test_tag", "test_key1")
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("test_data1"), data["test_data1"])
 }
 
 func TestSQLGetAllKeysByGlob(t *testing.T) {
@@ -293,4 +296,23 @@ func TestSQLGetAllKeysByGlob(t *testing.T) {
 	nodes, err = s.GetNodesByGlob("i*")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(nodes))
+}
+
+func TestSQLCustomData(t *testing.T) {
+	storage, err := SetupSQLTestDB("file::memory:")
+	if err != nil {
+		t.Fatalf("Setup failed: %v", err)
+	}
+	got, err := storage.GetCustomData("kev", "CVE-2024-0001")
+	assert.NoError(t, err)
+	assert.Empty(t, got)
+
+	assert.NoError(t, storage.AddOrUpdateCustomData("kev", "CVE-2024-0001", "entry", []byte("a")))
+	assert.NoError(t, storage.AddOrUpdateCustomData("kev", "CVE-2024-0001", "entry", []byte("b")))
+	assert.NoError(t, storage.AddOrUpdateCustomData("kev", "CVE-2024-0001", "note", []byte("c")))
+	assert.NoError(t, storage.AddOrUpdateCustomData("epss", "CVE-2024-0001", "entry", []byte("d")))
+
+	got, err = storage.GetCustomData("kev", "CVE-2024-0001")
+	assert.NoError(t, err)
+	assert.Equal(t, map[string][]byte{"entry": []byte("b"), "note": []byte("c")}, got)
 }

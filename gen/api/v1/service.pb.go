@@ -914,6 +914,617 @@ func (x *IngestScorecardRequest) GetScorecard() []byte {
 	return nil
 }
 
+// A CISA KEV catalog (JSON), a daily EPSS file (CSV, may be gzipped) or an OpenVEX document.
+type IngestDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IngestDataRequest) Reset() {
+	*x = IngestDataRequest{}
+	mi := &file_api_v1_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestDataRequest) ProtoMessage() {}
+
+func (x *IngestDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestDataRequest.ProtoReflect.Descriptor instead.
+func (*IngestDataRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *IngestDataRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type IngestDataResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// How many entries were stored.
+	Count         int64 `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IngestDataResponse) Reset() {
+	*x = IngestDataResponse{}
+	mi := &file_api_v1_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestDataResponse) ProtoMessage() {}
+
+func (x *IngestDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestDataResponse.ProtoReflect.Descriptor instead.
+func (*IngestDataResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *IngestDataResponse) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type ReportRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// One vulnerability by OSV ID or alias (for example a CVE); empty for all of them.
+	Vulnerability string `protobuf:"bytes,1,opt,name=vulnerability,proto3" json:"vulnerability,omitempty"`
+	// Only vulnerabilities in the CISA KEV catalog.
+	KevOnly bool `protobuf:"varint,2,opt,name=kev_only,json=kevOnly,proto3" json:"kev_only,omitempty"`
+	// Only vulnerabilities with at least this EPSS score.
+	MinEpss       float64 `protobuf:"fixed64,3,opt,name=min_epss,json=minEpss,proto3" json:"min_epss,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportRequest) Reset() {
+	*x = ReportRequest{}
+	mi := &file_api_v1_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportRequest) ProtoMessage() {}
+
+func (x *ReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportRequest.ProtoReflect.Descriptor instead.
+func (*ReportRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ReportRequest) GetVulnerability() string {
+	if x != nil {
+		return x.Vulnerability
+	}
+	return ""
+}
+
+func (x *ReportRequest) GetKevOnly() bool {
+	if x != nil {
+		return x.KevOnly
+	}
+	return false
+}
+
+func (x *ReportRequest) GetMinEpss() float64 {
+	if x != nil {
+		return x.MinEpss
+	}
+	return 0
+}
+
+type KEVEntry struct {
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	CveId                      string                 `protobuf:"bytes,1,opt,name=cve_id,json=cveId,proto3" json:"cve_id,omitempty"`
+	VendorProject              string                 `protobuf:"bytes,2,opt,name=vendor_project,json=vendorProject,proto3" json:"vendor_project,omitempty"`
+	Product                    string                 `protobuf:"bytes,3,opt,name=product,proto3" json:"product,omitempty"`
+	VulnerabilityName          string                 `protobuf:"bytes,4,opt,name=vulnerability_name,json=vulnerabilityName,proto3" json:"vulnerability_name,omitempty"`
+	DateAdded                  string                 `protobuf:"bytes,5,opt,name=date_added,json=dateAdded,proto3" json:"date_added,omitempty"`
+	ShortDescription           string                 `protobuf:"bytes,6,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
+	RequiredAction             string                 `protobuf:"bytes,7,opt,name=required_action,json=requiredAction,proto3" json:"required_action,omitempty"`
+	DueDate                    string                 `protobuf:"bytes,8,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`
+	KnownRansomwareCampaignUse string                 `protobuf:"bytes,9,opt,name=known_ransomware_campaign_use,json=knownRansomwareCampaignUse,proto3" json:"known_ransomware_campaign_use,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *KEVEntry) Reset() {
+	*x = KEVEntry{}
+	mi := &file_api_v1_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KEVEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KEVEntry) ProtoMessage() {}
+
+func (x *KEVEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KEVEntry.ProtoReflect.Descriptor instead.
+func (*KEVEntry) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *KEVEntry) GetCveId() string {
+	if x != nil {
+		return x.CveId
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetVendorProject() string {
+	if x != nil {
+		return x.VendorProject
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetProduct() string {
+	if x != nil {
+		return x.Product
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetVulnerabilityName() string {
+	if x != nil {
+		return x.VulnerabilityName
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetDateAdded() string {
+	if x != nil {
+		return x.DateAdded
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetShortDescription() string {
+	if x != nil {
+		return x.ShortDescription
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetRequiredAction() string {
+	if x != nil {
+		return x.RequiredAction
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetDueDate() string {
+	if x != nil {
+		return x.DueDate
+	}
+	return ""
+}
+
+func (x *KEVEntry) GetKnownRansomwareCampaignUse() string {
+	if x != nil {
+		return x.KnownRansomwareCampaignUse
+	}
+	return ""
+}
+
+type EPSSScore struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Epss          float64                `protobuf:"fixed64,1,opt,name=epss,proto3" json:"epss,omitempty"`
+	Percentile    float64                `protobuf:"fixed64,2,opt,name=percentile,proto3" json:"percentile,omitempty"`
+	Date          string                 `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EPSSScore) Reset() {
+	*x = EPSSScore{}
+	mi := &file_api_v1_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EPSSScore) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EPSSScore) ProtoMessage() {}
+
+func (x *EPSSScore) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EPSSScore.ProtoReflect.Descriptor instead.
+func (*EPSSScore) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *EPSSScore) GetEpss() float64 {
+	if x != nil {
+		return x.Epss
+	}
+	return 0
+}
+
+func (x *EPSSScore) GetPercentile() float64 {
+	if x != nil {
+		return x.Percentile
+	}
+	return 0
+}
+
+func (x *EPSSScore) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
+type VEXStatement struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Status          string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Justification   string                 `protobuf:"bytes,2,opt,name=justification,proto3" json:"justification,omitempty"`
+	ImpactStatement string                 `protobuf:"bytes,3,opt,name=impact_statement,json=impactStatement,proto3" json:"impact_statement,omitempty"`
+	ActionStatement string                 `protobuf:"bytes,4,opt,name=action_statement,json=actionStatement,proto3" json:"action_statement,omitempty"`
+	Timestamp       string                 `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *VEXStatement) Reset() {
+	*x = VEXStatement{}
+	mi := &file_api_v1_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VEXStatement) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VEXStatement) ProtoMessage() {}
+
+func (x *VEXStatement) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VEXStatement.ProtoReflect.Descriptor instead.
+func (*VEXStatement) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *VEXStatement) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *VEXStatement) GetJustification() string {
+	if x != nil {
+		return x.Justification
+	}
+	return ""
+}
+
+func (x *VEXStatement) GetImpactStatement() string {
+	if x != nil {
+		return x.ImpactStatement
+	}
+	return ""
+}
+
+func (x *VEXStatement) GetActionStatement() string {
+	if x != nil {
+		return x.ActionStatement
+	}
+	return ""
+}
+
+func (x *VEXStatement) GetTimestamp() string {
+	if x != nil {
+		return x.Timestamp
+	}
+	return ""
+}
+
+type ProductImpact struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// From the product to the vulnerable package, both included.
+	Path          []string      `protobuf:"bytes,2,rep,name=path,proto3" json:"path,omitempty"`
+	Vex           *VEXStatement `protobuf:"bytes,3,opt,name=vex,proto3" json:"vex,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProductImpact) Reset() {
+	*x = ProductImpact{}
+	mi := &file_api_v1_service_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProductImpact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProductImpact) ProtoMessage() {}
+
+func (x *ProductImpact) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProductImpact.ProtoReflect.Descriptor instead.
+func (*ProductImpact) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ProductImpact) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ProductImpact) GetPath() []string {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+func (x *ProductImpact) GetVex() *VEXStatement {
+	if x != nil {
+		return x.Vex
+	}
+	return nil
+}
+
+type Finding struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Aliases  []string               `protobuf:"bytes,2,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	Summary  string                 `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	Severity string                 `protobuf:"bytes,4,opt,name=severity,proto3" json:"severity,omitempty"`
+	Kev      *KEVEntry              `protobuf:"bytes,5,opt,name=kev,proto3" json:"kev,omitempty"`
+	Epss     *EPSSScore             `protobuf:"bytes,6,opt,name=epss,proto3" json:"epss,omitempty"`
+	Packages []string               `protobuf:"bytes,7,rep,name=packages,proto3" json:"packages,omitempty"`
+	Products []*ProductImpact       `protobuf:"bytes,8,rep,name=products,proto3" json:"products,omitempty"`
+	// Products that a VEX statement marks not_affected or fixed.
+	Suppressed    []*ProductImpact `protobuf:"bytes,9,rep,name=suppressed,proto3" json:"suppressed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Finding) Reset() {
+	*x = Finding{}
+	mi := &file_api_v1_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Finding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Finding) ProtoMessage() {}
+
+func (x *Finding) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Finding.ProtoReflect.Descriptor instead.
+func (*Finding) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *Finding) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Finding) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
+func (x *Finding) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *Finding) GetSeverity() string {
+	if x != nil {
+		return x.Severity
+	}
+	return ""
+}
+
+func (x *Finding) GetKev() *KEVEntry {
+	if x != nil {
+		return x.Kev
+	}
+	return nil
+}
+
+func (x *Finding) GetEpss() *EPSSScore {
+	if x != nil {
+		return x.Epss
+	}
+	return nil
+}
+
+func (x *Finding) GetPackages() []string {
+	if x != nil {
+		return x.Packages
+	}
+	return nil
+}
+
+func (x *Finding) GetProducts() []*ProductImpact {
+	if x != nil {
+		return x.Products
+	}
+	return nil
+}
+
+func (x *Finding) GetSuppressed() []*ProductImpact {
+	if x != nil {
+		return x.Suppressed
+	}
+	return nil
+}
+
+type ReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Findings      []*Finding             `protobuf:"bytes,1,rep,name=findings,proto3" json:"findings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportResponse) Reset() {
+	*x = ReportResponse{}
+	mi := &file_api_v1_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportResponse) ProtoMessage() {}
+
+func (x *ReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportResponse.ProtoReflect.Descriptor instead.
+func (*ReportResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ReportResponse) GetFindings() []*Finding {
+	if x != nil {
+		return x.Findings
+	}
+	return nil
+}
+
 type HealthCheckResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -923,7 +1534,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_api_v1_service_proto_msgTypes[19]
+	mi := &file_api_v1_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -935,7 +1546,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_service_proto_msgTypes[19]
+	mi := &file_api_v1_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -948,7 +1559,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_service_proto_rawDescGZIP(), []int{19}
+	return file_api_v1_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *HealthCheckResponse) GetStatus() string {
@@ -1009,7 +1620,56 @@ const file_api_v1_service_proto_rawDesc = "" +
 	"\x1aIngestVulnerabilityRequest\x12$\n" +
 	"\rvulnerability\x18\x01 \x01(\fR\rvulnerability\"6\n" +
 	"\x16IngestScorecardRequest\x12\x1c\n" +
-	"\tscorecard\x18\x01 \x01(\fR\tscorecard\"-\n" +
+	"\tscorecard\x18\x01 \x01(\fR\tscorecard\"'\n" +
+	"\x11IngestDataRequest\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\fR\x04data\"*\n" +
+	"\x12IngestDataResponse\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x03R\x05count\"k\n" +
+	"\rReportRequest\x12$\n" +
+	"\rvulnerability\x18\x01 \x01(\tR\rvulnerability\x12\x19\n" +
+	"\bkev_only\x18\x02 \x01(\bR\akevOnly\x12\x19\n" +
+	"\bmin_epss\x18\x03 \x01(\x01R\aminEpss\"\xe4\x02\n" +
+	"\bKEVEntry\x12\x15\n" +
+	"\x06cve_id\x18\x01 \x01(\tR\x05cveId\x12%\n" +
+	"\x0evendor_project\x18\x02 \x01(\tR\rvendorProject\x12\x18\n" +
+	"\aproduct\x18\x03 \x01(\tR\aproduct\x12-\n" +
+	"\x12vulnerability_name\x18\x04 \x01(\tR\x11vulnerabilityName\x12\x1d\n" +
+	"\n" +
+	"date_added\x18\x05 \x01(\tR\tdateAdded\x12+\n" +
+	"\x11short_description\x18\x06 \x01(\tR\x10shortDescription\x12'\n" +
+	"\x0frequired_action\x18\a \x01(\tR\x0erequiredAction\x12\x19\n" +
+	"\bdue_date\x18\b \x01(\tR\adueDate\x12A\n" +
+	"\x1dknown_ransomware_campaign_use\x18\t \x01(\tR\x1aknownRansomwareCampaignUse\"S\n" +
+	"\tEPSSScore\x12\x12\n" +
+	"\x04epss\x18\x01 \x01(\x01R\x04epss\x12\x1e\n" +
+	"\n" +
+	"percentile\x18\x02 \x01(\x01R\n" +
+	"percentile\x12\x12\n" +
+	"\x04date\x18\x03 \x01(\tR\x04date\"\xc0\x01\n" +
+	"\fVEXStatement\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12$\n" +
+	"\rjustification\x18\x02 \x01(\tR\rjustification\x12)\n" +
+	"\x10impact_statement\x18\x03 \x01(\tR\x0fimpactStatement\x12)\n" +
+	"\x10action_statement\x18\x04 \x01(\tR\x0factionStatement\x12\x1c\n" +
+	"\ttimestamp\x18\x05 \x01(\tR\ttimestamp\"_\n" +
+	"\rProductImpact\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04path\x18\x02 \x03(\tR\x04path\x12&\n" +
+	"\x03vex\x18\x03 \x01(\v2\x14.api.v1.VEXStatementR\x03vex\"\xba\x02\n" +
+	"\aFinding\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\aaliases\x18\x02 \x03(\tR\aaliases\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12\x1a\n" +
+	"\bseverity\x18\x04 \x01(\tR\bseverity\x12\"\n" +
+	"\x03kev\x18\x05 \x01(\v2\x10.api.v1.KEVEntryR\x03kev\x12%\n" +
+	"\x04epss\x18\x06 \x01(\v2\x11.api.v1.EPSSScoreR\x04epss\x12\x1a\n" +
+	"\bpackages\x18\a \x03(\tR\bpackages\x121\n" +
+	"\bproducts\x18\b \x03(\v2\x15.api.v1.ProductImpactR\bproducts\x125\n" +
+	"\n" +
+	"suppressed\x18\t \x03(\v2\x15.api.v1.ProductImpactR\n" +
+	"suppressed\"=\n" +
+	"\x0eReportResponse\x12+\n" +
+	"\bfindings\x18\x01 \x03(\v2\x0f.api.v1.FindingR\bfindings\"-\n" +
 	"\x13HealthCheckResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status2F\n" +
 	"\fQueryService\x126\n" +
@@ -1025,12 +1685,18 @@ const file_api_v1_service_proto_rawDesc = "" +
 	"\x0eGetNodesByGlob\x12\x1d.api.v1.GetNodesByGlobRequest\x1a\x1e.api.v1.GetNodesByGlobResponse\"\x00\x12N\n" +
 	"\rGetNodeByName\x12\x1c.api.v1.GetNodeByNameRequest\x1a\x1d.api.v1.GetNodeByNameResponse\"\x00\x12<\n" +
 	"\aAddNode\x12\x16.api.v1.AddNodeRequest\x1a\x17.api.v1.AddNodeResponse\"\x00\x12G\n" +
-	"\rSetDependency\x12\x1c.api.v1.SetDependencyRequest\x1a\x16.google.protobuf.Empty\"\x002\xf4\x01\n" +
+	"\rSetDependency\x12\x1c.api.v1.SetDependencyRequest\x1a\x16.google.protobuf.Empty\"\x002\xc7\x03\n" +
 	"\rIngestService\x12A\n" +
 	"\n" +
 	"IngestSBOM\x12\x19.api.v1.IngestSBOMRequest\x1a\x16.google.protobuf.Empty\"\x00\x12S\n" +
 	"\x13IngestVulnerability\x12\".api.v1.IngestVulnerabilityRequest\x1a\x16.google.protobuf.Empty\"\x00\x12K\n" +
-	"\x0fIngestScorecard\x12\x1e.api.v1.IngestScorecardRequest\x1a\x16.google.protobuf.Empty\"\x002O\n" +
+	"\x0fIngestScorecard\x12\x1e.api.v1.IngestScorecardRequest\x1a\x16.google.protobuf.Empty\"\x00\x12D\n" +
+	"\tIngestKEV\x12\x19.api.v1.IngestDataRequest\x1a\x1a.api.v1.IngestDataResponse\"\x00\x12E\n" +
+	"\n" +
+	"IngestEPSS\x12\x19.api.v1.IngestDataRequest\x1a\x1a.api.v1.IngestDataResponse\"\x00\x12D\n" +
+	"\tIngestVEX\x12\x19.api.v1.IngestDataRequest\x1a\x1a.api.v1.IngestDataResponse\"\x002J\n" +
+	"\rReportService\x129\n" +
+	"\x06Report\x12\x15.api.v1.ReportRequest\x1a\x16.api.v1.ReportResponse\"\x002O\n" +
 	"\rHealthService\x12>\n" +
 	"\x05Check\x12\x16.google.protobuf.Empty\x1a\x1b.api.v1.HealthCheckResponse\"\x00B,Z*github.com/Perruer/sapper/gen/api/v1;apiv1b\x06proto3"
 
@@ -1046,7 +1712,7 @@ func file_api_v1_service_proto_rawDescGZIP() []byte {
 	return file_api_v1_service_proto_rawDescData
 }
 
-var file_api_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_api_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_api_v1_service_proto_goTypes = []any{
 	(*QueryRequest)(nil),               // 0: api.v1.QueryRequest
 	(*QueryResponse)(nil),              // 1: api.v1.QueryResponse
@@ -1067,8 +1733,17 @@ var file_api_v1_service_proto_goTypes = []any{
 	(*IngestSBOMRequest)(nil),          // 16: api.v1.IngestSBOMRequest
 	(*IngestVulnerabilityRequest)(nil), // 17: api.v1.IngestVulnerabilityRequest
 	(*IngestScorecardRequest)(nil),     // 18: api.v1.IngestScorecardRequest
-	(*HealthCheckResponse)(nil),        // 19: api.v1.HealthCheckResponse
-	(*emptypb.Empty)(nil),              // 20: google.protobuf.Empty
+	(*IngestDataRequest)(nil),          // 19: api.v1.IngestDataRequest
+	(*IngestDataResponse)(nil),         // 20: api.v1.IngestDataResponse
+	(*ReportRequest)(nil),              // 21: api.v1.ReportRequest
+	(*KEVEntry)(nil),                   // 22: api.v1.KEVEntry
+	(*EPSSScore)(nil),                  // 23: api.v1.EPSSScore
+	(*VEXStatement)(nil),               // 24: api.v1.VEXStatement
+	(*ProductImpact)(nil),              // 25: api.v1.ProductImpact
+	(*Finding)(nil),                    // 26: api.v1.Finding
+	(*ReportResponse)(nil),             // 27: api.v1.ReportResponse
+	(*HealthCheckResponse)(nil),        // 28: api.v1.HealthCheckResponse
+	(*emptypb.Empty)(nil),              // 29: google.protobuf.Empty
 }
 var file_api_v1_service_proto_depIdxs = []int32{
 	3,  // 0: api.v1.QueryResponse.nodes:type_name -> api.v1.Node
@@ -1080,39 +1755,53 @@ var file_api_v1_service_proto_depIdxs = []int32{
 	3,  // 6: api.v1.GetNodesByGlobResponse.nodes:type_name -> api.v1.Node
 	3,  // 7: api.v1.AddNodeRequest.node:type_name -> api.v1.Node
 	3,  // 8: api.v1.AddNodeResponse.node:type_name -> api.v1.Node
-	0,  // 9: api.v1.QueryService.Query:input_type -> api.v1.QueryRequest
-	20, // 10: api.v1.CacheService.Cache:input_type -> google.protobuf.Empty
-	20, // 11: api.v1.CacheService.Clear:input_type -> google.protobuf.Empty
-	5,  // 12: api.v1.LeaderboardService.CustomLeaderboard:input_type -> api.v1.CustomLeaderboardRequest
-	20, // 13: api.v1.LeaderboardService.AllKeys:input_type -> google.protobuf.Empty
-	7,  // 14: api.v1.GraphService.GetNode:input_type -> api.v1.GetNodeRequest
-	11, // 15: api.v1.GraphService.GetNodesByGlob:input_type -> api.v1.GetNodesByGlobRequest
-	9,  // 16: api.v1.GraphService.GetNodeByName:input_type -> api.v1.GetNodeByNameRequest
-	13, // 17: api.v1.GraphService.AddNode:input_type -> api.v1.AddNodeRequest
-	15, // 18: api.v1.GraphService.SetDependency:input_type -> api.v1.SetDependencyRequest
-	16, // 19: api.v1.IngestService.IngestSBOM:input_type -> api.v1.IngestSBOMRequest
-	17, // 20: api.v1.IngestService.IngestVulnerability:input_type -> api.v1.IngestVulnerabilityRequest
-	18, // 21: api.v1.IngestService.IngestScorecard:input_type -> api.v1.IngestScorecardRequest
-	20, // 22: api.v1.HealthService.Check:input_type -> google.protobuf.Empty
-	1,  // 23: api.v1.QueryService.Query:output_type -> api.v1.QueryResponse
-	20, // 24: api.v1.CacheService.Cache:output_type -> google.protobuf.Empty
-	20, // 25: api.v1.CacheService.Clear:output_type -> google.protobuf.Empty
-	6,  // 26: api.v1.LeaderboardService.CustomLeaderboard:output_type -> api.v1.CustomLeaderboardResponse
-	2,  // 27: api.v1.LeaderboardService.AllKeys:output_type -> api.v1.AllKeysResponse
-	8,  // 28: api.v1.GraphService.GetNode:output_type -> api.v1.GetNodeResponse
-	12, // 29: api.v1.GraphService.GetNodesByGlob:output_type -> api.v1.GetNodesByGlobResponse
-	10, // 30: api.v1.GraphService.GetNodeByName:output_type -> api.v1.GetNodeByNameResponse
-	14, // 31: api.v1.GraphService.AddNode:output_type -> api.v1.AddNodeResponse
-	20, // 32: api.v1.GraphService.SetDependency:output_type -> google.protobuf.Empty
-	20, // 33: api.v1.IngestService.IngestSBOM:output_type -> google.protobuf.Empty
-	20, // 34: api.v1.IngestService.IngestVulnerability:output_type -> google.protobuf.Empty
-	20, // 35: api.v1.IngestService.IngestScorecard:output_type -> google.protobuf.Empty
-	19, // 36: api.v1.HealthService.Check:output_type -> api.v1.HealthCheckResponse
-	23, // [23:37] is the sub-list for method output_type
-	9,  // [9:23] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	24, // 9: api.v1.ProductImpact.vex:type_name -> api.v1.VEXStatement
+	22, // 10: api.v1.Finding.kev:type_name -> api.v1.KEVEntry
+	23, // 11: api.v1.Finding.epss:type_name -> api.v1.EPSSScore
+	25, // 12: api.v1.Finding.products:type_name -> api.v1.ProductImpact
+	25, // 13: api.v1.Finding.suppressed:type_name -> api.v1.ProductImpact
+	26, // 14: api.v1.ReportResponse.findings:type_name -> api.v1.Finding
+	0,  // 15: api.v1.QueryService.Query:input_type -> api.v1.QueryRequest
+	29, // 16: api.v1.CacheService.Cache:input_type -> google.protobuf.Empty
+	29, // 17: api.v1.CacheService.Clear:input_type -> google.protobuf.Empty
+	5,  // 18: api.v1.LeaderboardService.CustomLeaderboard:input_type -> api.v1.CustomLeaderboardRequest
+	29, // 19: api.v1.LeaderboardService.AllKeys:input_type -> google.protobuf.Empty
+	7,  // 20: api.v1.GraphService.GetNode:input_type -> api.v1.GetNodeRequest
+	11, // 21: api.v1.GraphService.GetNodesByGlob:input_type -> api.v1.GetNodesByGlobRequest
+	9,  // 22: api.v1.GraphService.GetNodeByName:input_type -> api.v1.GetNodeByNameRequest
+	13, // 23: api.v1.GraphService.AddNode:input_type -> api.v1.AddNodeRequest
+	15, // 24: api.v1.GraphService.SetDependency:input_type -> api.v1.SetDependencyRequest
+	16, // 25: api.v1.IngestService.IngestSBOM:input_type -> api.v1.IngestSBOMRequest
+	17, // 26: api.v1.IngestService.IngestVulnerability:input_type -> api.v1.IngestVulnerabilityRequest
+	18, // 27: api.v1.IngestService.IngestScorecard:input_type -> api.v1.IngestScorecardRequest
+	19, // 28: api.v1.IngestService.IngestKEV:input_type -> api.v1.IngestDataRequest
+	19, // 29: api.v1.IngestService.IngestEPSS:input_type -> api.v1.IngestDataRequest
+	19, // 30: api.v1.IngestService.IngestVEX:input_type -> api.v1.IngestDataRequest
+	21, // 31: api.v1.ReportService.Report:input_type -> api.v1.ReportRequest
+	29, // 32: api.v1.HealthService.Check:input_type -> google.protobuf.Empty
+	1,  // 33: api.v1.QueryService.Query:output_type -> api.v1.QueryResponse
+	29, // 34: api.v1.CacheService.Cache:output_type -> google.protobuf.Empty
+	29, // 35: api.v1.CacheService.Clear:output_type -> google.protobuf.Empty
+	6,  // 36: api.v1.LeaderboardService.CustomLeaderboard:output_type -> api.v1.CustomLeaderboardResponse
+	2,  // 37: api.v1.LeaderboardService.AllKeys:output_type -> api.v1.AllKeysResponse
+	8,  // 38: api.v1.GraphService.GetNode:output_type -> api.v1.GetNodeResponse
+	12, // 39: api.v1.GraphService.GetNodesByGlob:output_type -> api.v1.GetNodesByGlobResponse
+	10, // 40: api.v1.GraphService.GetNodeByName:output_type -> api.v1.GetNodeByNameResponse
+	14, // 41: api.v1.GraphService.AddNode:output_type -> api.v1.AddNodeResponse
+	29, // 42: api.v1.GraphService.SetDependency:output_type -> google.protobuf.Empty
+	29, // 43: api.v1.IngestService.IngestSBOM:output_type -> google.protobuf.Empty
+	29, // 44: api.v1.IngestService.IngestVulnerability:output_type -> google.protobuf.Empty
+	29, // 45: api.v1.IngestService.IngestScorecard:output_type -> google.protobuf.Empty
+	20, // 46: api.v1.IngestService.IngestKEV:output_type -> api.v1.IngestDataResponse
+	20, // 47: api.v1.IngestService.IngestEPSS:output_type -> api.v1.IngestDataResponse
+	20, // 48: api.v1.IngestService.IngestVEX:output_type -> api.v1.IngestDataResponse
+	27, // 49: api.v1.ReportService.Report:output_type -> api.v1.ReportResponse
+	28, // 50: api.v1.HealthService.Check:output_type -> api.v1.HealthCheckResponse
+	33, // [33:51] is the sub-list for method output_type
+	15, // [15:33] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_service_proto_init() }
@@ -1126,9 +1815,9 @@ func file_api_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_service_proto_rawDesc), len(file_api_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   29,
 			NumExtensions: 0,
-			NumServices:   6,
+			NumServices:   7,
 		},
 		GoTypes:           file_api_v1_service_proto_goTypes,
 		DependencyIndexes: file_api_v1_service_proto_depIdxs,

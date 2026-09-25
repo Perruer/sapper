@@ -1,6 +1,7 @@
 package ingest
 
 import (
+	"github.com/Perruer/sapper/cmd/ingest/data"
 	"github.com/Perruer/sapper/cmd/ingest/osv"
 	"github.com/Perruer/sapper/cmd/ingest/sbom"
 	"github.com/Perruer/sapper/cmd/ingest/scorecard"
@@ -23,5 +24,8 @@ func New() *cobra.Command {
 	cmd.AddCommand(osv.New())
 	cmd.AddCommand(sbom.New())
 	cmd.AddCommand(scorecard.New())
+	cmd.AddCommand(data.NewKEV())
+	cmd.AddCommand(data.NewEPSS())
+	cmd.AddCommand(data.NewVEX())
 	return cmd
 }

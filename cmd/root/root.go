@@ -10,6 +10,7 @@ import (
 	"github.com/Perruer/sapper/cmd/leaderboard"
 	llm "github.com/Perruer/sapper/cmd/llm"
 	"github.com/Perruer/sapper/cmd/query"
+	"github.com/Perruer/sapper/cmd/report"
 	"github.com/Perruer/sapper/cmd/server"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ func New() *cobra.Command {
 	o := &options{}
 	rootCmd := &cobra.Command{
 		Use:               "sapper",
-		Short:             "Graphing SBOM's with the power of roaring bitmaps",
+		Short:             "Find where vulnerable packages sit across all of your products",
 		SilenceUsage:      true,
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -56,5 +57,6 @@ func New() *cobra.Command {
 	rootCmd.AddCommand(leaderboard.New())
 	rootCmd.AddCommand(server.New())
 	rootCmd.AddCommand(llm.New())
+	rootCmd.AddCommand(report.New())
 	return rootCmd
 }

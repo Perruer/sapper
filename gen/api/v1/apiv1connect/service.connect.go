@@ -32,6 +32,8 @@ const (
 	GraphServiceName = "api.v1.GraphService"
 	// IngestServiceName is the fully-qualified name of the IngestService service.
 	IngestServiceName = "api.v1.IngestService"
+	// ReportServiceName is the fully-qualified name of the ReportService service.
+	ReportServiceName = "api.v1.ReportService"
 	// HealthServiceName is the fully-qualified name of the HealthService service.
 	HealthServiceName = "api.v1.HealthService"
 )
@@ -78,6 +80,15 @@ const (
 	// IngestServiceIngestScorecardProcedure is the fully-qualified name of the IngestService's
 	// IngestScorecard RPC.
 	IngestServiceIngestScorecardProcedure = "/api.v1.IngestService/IngestScorecard"
+	// IngestServiceIngestKEVProcedure is the fully-qualified name of the IngestService's IngestKEV RPC.
+	IngestServiceIngestKEVProcedure = "/api.v1.IngestService/IngestKEV"
+	// IngestServiceIngestEPSSProcedure is the fully-qualified name of the IngestService's IngestEPSS
+	// RPC.
+	IngestServiceIngestEPSSProcedure = "/api.v1.IngestService/IngestEPSS"
+	// IngestServiceIngestVEXProcedure is the fully-qualified name of the IngestService's IngestVEX RPC.
+	IngestServiceIngestVEXProcedure = "/api.v1.IngestService/IngestVEX"
+	// ReportServiceReportProcedure is the fully-qualified name of the ReportService's Report RPC.
+	ReportServiceReportProcedure = "/api.v1.ReportService/Report"
 	// HealthServiceCheckProcedure is the fully-qualified name of the HealthService's Check RPC.
 	HealthServiceCheckProcedure = "/api.v1.HealthService/Check"
 )
@@ -523,6 +534,9 @@ type IngestServiceClient interface {
 	IngestSBOM(context.Context, *connect.Request[v1.IngestSBOMRequest]) (*connect.Response[emptypb.Empty], error)
 	IngestVulnerability(context.Context, *connect.Request[v1.IngestVulnerabilityRequest]) (*connect.Response[emptypb.Empty], error)
 	IngestScorecard(context.Context, *connect.Request[v1.IngestScorecardRequest]) (*connect.Response[emptypb.Empty], error)
+	IngestKEV(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
+	IngestEPSS(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
+	IngestVEX(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
 }
 
 // NewIngestServiceClient constructs a client for the api.v1.IngestService service. By default, it
@@ -554,6 +568,24 @@ func NewIngestServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(ingestServiceMethods.ByName("IngestScorecard")),
 			connect.WithClientOptions(opts...),
 		),
+		ingestKEV: connect.NewClient[v1.IngestDataRequest, v1.IngestDataResponse](
+			httpClient,
+			baseURL+IngestServiceIngestKEVProcedure,
+			connect.WithSchema(ingestServiceMethods.ByName("IngestKEV")),
+			connect.WithClientOptions(opts...),
+		),
+		ingestEPSS: connect.NewClient[v1.IngestDataRequest, v1.IngestDataResponse](
+			httpClient,
+			baseURL+IngestServiceIngestEPSSProcedure,
+			connect.WithSchema(ingestServiceMethods.ByName("IngestEPSS")),
+			connect.WithClientOptions(opts...),
+		),
+		ingestVEX: connect.NewClient[v1.IngestDataRequest, v1.IngestDataResponse](
+			httpClient,
+			baseURL+IngestServiceIngestVEXProcedure,
+			connect.WithSchema(ingestServiceMethods.ByName("IngestVEX")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -562,6 +594,9 @@ type ingestServiceClient struct {
 	ingestSBOM          *connect.Client[v1.IngestSBOMRequest, emptypb.Empty]
 	ingestVulnerability *connect.Client[v1.IngestVulnerabilityRequest, emptypb.Empty]
 	ingestScorecard     *connect.Client[v1.IngestScorecardRequest, emptypb.Empty]
+	ingestKEV           *connect.Client[v1.IngestDataRequest, v1.IngestDataResponse]
+	ingestEPSS          *connect.Client[v1.IngestDataRequest, v1.IngestDataResponse]
+	ingestVEX           *connect.Client[v1.IngestDataRequest, v1.IngestDataResponse]
 }
 
 // IngestSBOM calls api.v1.IngestService.IngestSBOM.
@@ -579,11 +614,29 @@ func (c *ingestServiceClient) IngestScorecard(ctx context.Context, req *connect.
 	return c.ingestScorecard.CallUnary(ctx, req)
 }
 
+// IngestKEV calls api.v1.IngestService.IngestKEV.
+func (c *ingestServiceClient) IngestKEV(ctx context.Context, req *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return c.ingestKEV.CallUnary(ctx, req)
+}
+
+// IngestEPSS calls api.v1.IngestService.IngestEPSS.
+func (c *ingestServiceClient) IngestEPSS(ctx context.Context, req *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return c.ingestEPSS.CallUnary(ctx, req)
+}
+
+// IngestVEX calls api.v1.IngestService.IngestVEX.
+func (c *ingestServiceClient) IngestVEX(ctx context.Context, req *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return c.ingestVEX.CallUnary(ctx, req)
+}
+
 // IngestServiceHandler is an implementation of the api.v1.IngestService service.
 type IngestServiceHandler interface {
 	IngestSBOM(context.Context, *connect.Request[v1.IngestSBOMRequest]) (*connect.Response[emptypb.Empty], error)
 	IngestVulnerability(context.Context, *connect.Request[v1.IngestVulnerabilityRequest]) (*connect.Response[emptypb.Empty], error)
 	IngestScorecard(context.Context, *connect.Request[v1.IngestScorecardRequest]) (*connect.Response[emptypb.Empty], error)
+	IngestKEV(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
+	IngestEPSS(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
+	IngestVEX(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error)
 }
 
 // NewIngestServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -611,6 +664,24 @@ func NewIngestServiceHandler(svc IngestServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(ingestServiceMethods.ByName("IngestScorecard")),
 		connect.WithHandlerOptions(opts...),
 	)
+	ingestServiceIngestKEVHandler := connect.NewUnaryHandler(
+		IngestServiceIngestKEVProcedure,
+		svc.IngestKEV,
+		connect.WithSchema(ingestServiceMethods.ByName("IngestKEV")),
+		connect.WithHandlerOptions(opts...),
+	)
+	ingestServiceIngestEPSSHandler := connect.NewUnaryHandler(
+		IngestServiceIngestEPSSProcedure,
+		svc.IngestEPSS,
+		connect.WithSchema(ingestServiceMethods.ByName("IngestEPSS")),
+		connect.WithHandlerOptions(opts...),
+	)
+	ingestServiceIngestVEXHandler := connect.NewUnaryHandler(
+		IngestServiceIngestVEXProcedure,
+		svc.IngestVEX,
+		connect.WithSchema(ingestServiceMethods.ByName("IngestVEX")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/api.v1.IngestService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case IngestServiceIngestSBOMProcedure:
@@ -619,6 +690,12 @@ func NewIngestServiceHandler(svc IngestServiceHandler, opts ...connect.HandlerOp
 			ingestServiceIngestVulnerabilityHandler.ServeHTTP(w, r)
 		case IngestServiceIngestScorecardProcedure:
 			ingestServiceIngestScorecardHandler.ServeHTTP(w, r)
+		case IngestServiceIngestKEVProcedure:
+			ingestServiceIngestKEVHandler.ServeHTTP(w, r)
+		case IngestServiceIngestEPSSProcedure:
+			ingestServiceIngestEPSSHandler.ServeHTTP(w, r)
+		case IngestServiceIngestVEXProcedure:
+			ingestServiceIngestVEXHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -638,6 +715,90 @@ func (UnimplementedIngestServiceHandler) IngestVulnerability(context.Context, *c
 
 func (UnimplementedIngestServiceHandler) IngestScorecard(context.Context, *connect.Request[v1.IngestScorecardRequest]) (*connect.Response[emptypb.Empty], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.IngestService.IngestScorecard is not implemented"))
+}
+
+func (UnimplementedIngestServiceHandler) IngestKEV(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.IngestService.IngestKEV is not implemented"))
+}
+
+func (UnimplementedIngestServiceHandler) IngestEPSS(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.IngestService.IngestEPSS is not implemented"))
+}
+
+func (UnimplementedIngestServiceHandler) IngestVEX(context.Context, *connect.Request[v1.IngestDataRequest]) (*connect.Response[v1.IngestDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.IngestService.IngestVEX is not implemented"))
+}
+
+// ReportServiceClient is a client for the api.v1.ReportService service.
+type ReportServiceClient interface {
+	// Vulnerabilities with the products they reach, most urgent first.
+	Report(context.Context, *connect.Request[v1.ReportRequest]) (*connect.Response[v1.ReportResponse], error)
+}
+
+// NewReportServiceClient constructs a client for the api.v1.ReportService service. By default, it
+// uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
+// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
+// connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewReportServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ReportServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	reportServiceMethods := v1.File_api_v1_service_proto.Services().ByName("ReportService").Methods()
+	return &reportServiceClient{
+		report: connect.NewClient[v1.ReportRequest, v1.ReportResponse](
+			httpClient,
+			baseURL+ReportServiceReportProcedure,
+			connect.WithSchema(reportServiceMethods.ByName("Report")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// reportServiceClient implements ReportServiceClient.
+type reportServiceClient struct {
+	report *connect.Client[v1.ReportRequest, v1.ReportResponse]
+}
+
+// Report calls api.v1.ReportService.Report.
+func (c *reportServiceClient) Report(ctx context.Context, req *connect.Request[v1.ReportRequest]) (*connect.Response[v1.ReportResponse], error) {
+	return c.report.CallUnary(ctx, req)
+}
+
+// ReportServiceHandler is an implementation of the api.v1.ReportService service.
+type ReportServiceHandler interface {
+	// Vulnerabilities with the products they reach, most urgent first.
+	Report(context.Context, *connect.Request[v1.ReportRequest]) (*connect.Response[v1.ReportResponse], error)
+}
+
+// NewReportServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewReportServiceHandler(svc ReportServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	reportServiceMethods := v1.File_api_v1_service_proto.Services().ByName("ReportService").Methods()
+	reportServiceReportHandler := connect.NewUnaryHandler(
+		ReportServiceReportProcedure,
+		svc.Report,
+		connect.WithSchema(reportServiceMethods.ByName("Report")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/api.v1.ReportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case ReportServiceReportProcedure:
+			reportServiceReportHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedReportServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedReportServiceHandler struct{}
+
+func (UnimplementedReportServiceHandler) Report(context.Context, *connect.Request[v1.ReportRequest]) (*connect.Response[v1.ReportResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.ReportService.Report is not implemented"))
 }
 
 // HealthServiceClient is a client for the api.v1.HealthService service.

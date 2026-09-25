@@ -89,6 +89,75 @@ message IngestScorecardRequest {
   bytes scorecard = 1;
 }
 
+// A CISA KEV catalog (JSON), a daily EPSS file (CSV, may be gzipped) or an OpenVEX document.
+message IngestDataRequest {
+  bytes data = 1;
+}
+
+message IngestDataResponse {
+  // How many entries were stored.
+  int64 count = 1;
+}
+
+message ReportRequest {
+  // One vulnerability by OSV ID or alias (for example a CVE); empty for all of them.
+  string vulnerability = 1;
+  // Only vulnerabilities in the CISA KEV catalog.
+  bool kev_only = 2;
+  // Only vulnerabilities with at least this EPSS score.
+  double min_epss = 3;
+}
+
+message KEVEntry {
+  string cve_id = 1;
+  string vendor_project = 2;
+  string product = 3;
+  string vulnerability_name = 4;
+  string date_added = 5;
+  string short_description = 6;
+  string required_action = 7;
+  string due_date = 8;
+  string known_ransomware_campaign_use = 9;
+}
+
+message EPSSScore {
+  double epss = 1;
+  double percentile = 2;
+  string date = 3;
+}
+
+message VEXStatement {
+  string status = 1;
+  string justification = 2;
+  string impact_statement = 3;
+  string action_statement = 4;
+  string timestamp = 5;
+}
+
+message ProductImpact {
+  string name = 1;
+  // From the product to the vulnerable package, both included.
+  repeated string path = 2;
+  VEXStatement vex = 3;
+}
+
+message Finding {
+  string id = 1;
+  repeated string aliases = 2;
+  string summary = 3;
+  string severity = 4;
+  KEVEntry kev = 5;
+  EPSSScore epss = 6;
+  repeated string packages = 7;
+  repeated ProductImpact products = 8;
+  // Products that a VEX statement marks not_affected or fixed.
+  repeated ProductImpact suppressed = 9;
+}
+
+message ReportResponse {
+  repeated Finding findings = 1;
+}
+
 message HealthCheckResponse {
   string status = 1;
 }
@@ -119,6 +188,14 @@ service IngestService {
   rpc IngestSBOM(IngestSBOMRequest) returns (google.protobuf.Empty) {}
   rpc IngestVulnerability(IngestVulnerabilityRequest) returns (google.protobuf.Empty) {}
   rpc IngestScorecard(IngestScorecardRequest) returns (google.protobuf.Empty) {}
+  rpc IngestKEV(IngestDataRequest) returns (IngestDataResponse) {}
+  rpc IngestEPSS(IngestDataRequest) returns (IngestDataResponse) {}
+  rpc IngestVEX(IngestDataRequest) returns (IngestDataResponse) {}
+}
+
+service ReportService {
+  // Vulnerabilities with the products they reach, most urgent first.
+  rpc Report(ReportRequest) returns (ReportResponse) {}
 }
 
 service HealthService {

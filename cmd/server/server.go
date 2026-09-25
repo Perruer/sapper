@@ -131,6 +131,8 @@ func (o *options) setupServer() (*http.Server, error) {
 	mux.Handle(path, handler)
 	path, handler = apiv1connect.NewIngestServiceHandler(newService)
 	mux.Handle(path, handler)
+	path, handler = apiv1connect.NewReportServiceHandler(newService)
+	mux.Handle(path, handler)
 
 	server := &http.Server{
 		Addr:    serviceAddr,

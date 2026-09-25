@@ -240,3 +240,19 @@ func setupRedis(t *testing.T) (*RedisStorage, error) {
 	}
 	return SetupRedisTestDB(context.Background())
 }
+
+func TestRedisCustomData(t *testing.T) {
+	r, err := setupRedis(t)
+	assert.NoError(t, err)
+	got, err := r.GetCustomData("kev", "CVE-2024-0001")
+	assert.NoError(t, err)
+	assert.Empty(t, got)
+
+	assert.NoError(t, r.AddOrUpdateCustomData("kev", "CVE-2024-0001", "entry", []byte("a")))
+	assert.NoError(t, r.AddOrUpdateCustomData("kev", "CVE-2024-0001", "entry", []byte("b")))
+	assert.NoError(t, r.AddOrUpdateCustomData("kev", "CVE-2024-0001", "note", []byte("c")))
+
+	got, err = r.GetCustomData("kev", "CVE-2024-0001")
+	assert.NoError(t, err)
+	assert.Equal(t, map[string][]byte{"entry": []byte("b"), "note": []byte("c")}, got)
+}

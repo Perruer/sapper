@@ -1,21 +1,17 @@
-# Coverage files
-coverage.out
-coverage.html
 
 # Binary directory
-bin/
-
+# Coverage files
+# Dependencies
+# Generated files
 # IDE specific files
+# OS specific files
+*.swo
+*.swp
+.DS_Store
 .idea/
 .vscode/
-*.swp
-*.swo
-
-# OS specific files
-.DS_Store
-
-# Dependencies
+bin/
+coverage.html
+coverage.out
 vendor/
-
-# Generated files
-wire_gen.go
+wire_gen.gobin/

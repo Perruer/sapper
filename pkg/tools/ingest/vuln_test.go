@@ -227,3 +227,30 @@ func TestCompareEcosystemVersions(t *testing.T) {
 		})
 	}
 }
+
+func TestSortRangeEventsOrdersByVersion(t *testing.T) {
+	events := []Event{
+		{Fixed: "1.5.0"},
+		{Introduced: "2.0.0"},
+		{Introduced: "1.0.0"},
+		{Fixed: "2.1.0"},
+	}
+	sorted := sortRangeEvents(events, "SEMVER", "Go")
+	got := []string{}
+	for _, e := range sorted {
+		got = append(got, getVersionFromEvent(e))
+	}
+	want := []string{"1.0.0", "1.5.0", "2.0.0", "2.1.0"}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("sortRangeEvents() = %v, want %v", got, want)
+		}
+	}
+	// 1.7.0 lies between the two affected ranges and must not be reported
+	if isVersionInRanges("1.7.0", []Range{{Type: "SEMVER", Events: events}}, "Go") {
+		t.Error("1.7.0 reported as affected")
+	}
+	if !isVersionInRanges("2.0.5", []Range{{Type: "SEMVER", Events: events}}, "Go") {
+		t.Error("2.0.5 not reported as affected")
+	}
+}
