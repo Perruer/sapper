@@ -1,6 +1,6 @@
 # Changelog
 
-## Sapper 1.0.1 (unreleased)
+## Sapper 1.0.1 (2026-09-25)
 
 - Client commands accept `--addr` as `host:port`, the same form the server takes; `http://` is added when there is no scheme. Before, `--addr localhost:8089` failed with "unsupported protocol scheme".
 
