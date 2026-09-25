@@ -363,9 +363,13 @@ func New() *cobra.Command {
 	o := &options{}
 
 	cmd := &cobra.Command{
-		Use:               "llm [query]",
-		Short:             "Create a chat session with an LLM to query the graph for leaderboards, queries, and globsearches",
-		Long:              "Creates an LLM chat session to query the graph for leaderboards, queries, and globsearches, to end the chat session use the type 'exit'. This does use OpenAI, so you need to have the OPENAI_API_KEY environment variable set.",
+		Use:   "llm [query]",
+		Short: "Create a chat session with an LLM to query the graph for leaderboards, queries, and globsearches",
+		Long: `Ask questions about the graph in plain language; the model turns them into queries, leaderboards or
+glob searches and Sapper runs them. Type 'exit' to end the session.
+
+Works with any OpenAI-compatible chat API. For OpenAI set SAPPER_LLM_API_KEY (or OPENAI_API_KEY); for a local
+server such as Ollama pass --base-url http://localhost:11434/v1 and a model it has, e.g. --model qwen2.5-coder.`,
 		Args:              cobra.NoArgs,
 		RunE:              o.Run,
 		DisableAutoGenTag: true,
