@@ -61,7 +61,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/philippgille/chromem-go v0.7.0
 	github.com/rs/cors v1.11.1
 	github.com/sashabaranov/go-openai v1.42.1
 	github.com/sirupsen/logrus v1.10.2 // indirect

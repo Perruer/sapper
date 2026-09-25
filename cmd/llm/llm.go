@@ -14,7 +14,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	chromadb "github.com/philippgille/chromem-go"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
 )
@@ -43,15 +42,9 @@ If this is a regular query, you should prefix your answer with 'query:'.
 If this is a globsearch query, you should prefix your answer with 'globsearch:'.
 
 
-Context information:
+Documentation of the DSL:
 
-%s
-
----
-
-User question: %s
-
-Please provide a helpful response. If the question requires a DSL query, format it clearly as a DSL script.`
+%s`
 
 // options holds the command-line options.
 type options struct {
@@ -63,7 +56,8 @@ type options struct {
 	queryServiceClient       apiv1connect.QueryServiceClient
 	leaderboardServiceClient apiv1connect.LeaderboardServiceClient
 	graphServiceClient       apiv1connect.GraphServiceClient
-	vectorDBPath             string
+	model                    string
+	baseURL                  string
 }
 
 // AddFlags adds command-line flags to the provided cobra command.
@@ -71,35 +65,34 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&o.maxOutput, "max-output", 10, "maximum number of results to display")
 	cmd.Flags().BoolVar(&o.showInfo, "show-info", true, "display the info column")
 	cmd.Flags().StringVar(&o.addr, "addr", "http://localhost:8089", "address of the Sapper server")
-	cmd.Flags().StringVar(&o.vectorDBPath, "vector-db-path", "./db", "Path to the vector database")
+	cmd.Flags().StringVar(&o.model, "model", envOr("SAPPER_LLM_MODEL", "gpt-4o-mini"), "chat model to use (env SAPPER_LLM_MODEL)")
+	cmd.Flags().StringVar(&o.baseURL, "base-url", os.Getenv("SAPPER_LLM_BASE_URL"),
+		"OpenAI-compatible API address, e.g. http://localhost:11434/v1 for Ollama (env SAPPER_LLM_BASE_URL; default: OpenAI)")
 	cmd.Flags().StringVar(&o.output, "output", "table", "output format (table or json)")
 }
 
 // Run executes the custom command with the provided arguments.
 func (o *options) Run(cmd *cobra.Command, args []string) error {
 
-	if os.Getenv("OPENAI_API_KEY") == "" {
-		return fmt.Errorf("OPENAI_API_KEY environment variable is not set")
+	// Any OpenAI-compatible chat API works. A key is needed for OpenAI itself; local servers such as
+	// Ollama usually accept any value.
+	apiKey := envOr("SAPPER_LLM_API_KEY", os.Getenv("OPENAI_API_KEY"))
+	if apiKey == "" && o.baseURL == "" {
+		return fmt.Errorf("set SAPPER_LLM_API_KEY (or OPENAI_API_KEY), or point --base-url at a local OpenAI-compatible server")
 	}
-	db, err := chromadb.NewPersistentDB(o.vectorDBPath, false)
-	if err != nil {
-		return fmt.Errorf("failed to initialize ChromaDB: %w", err)
+	config := openai.DefaultConfig(apiKey)
+	if o.baseURL != "" {
+		config.BaseURL = strings.TrimRight(o.baseURL, "/")
 	}
+	client := openai.NewClientWithConfig(config)
 
-	c := db.GetCollection("knowledge-base", nil)
-	if err != nil {
-		return fmt.Errorf("failed to get collection from ChromaDB: %w", err)
-	}
-
-	// Initialize chat messages
+	// The documentation of the query language goes into the system prompt as a whole.
 	messages := []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleSystem,
-			Content: PROMPT_TEMPLATE,
+			Content: fmt.Sprintf(PROMPT_TEMPLATE, strings.Join(knowledge, "\n\n")),
 		},
 	}
-
-	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
 	// Initialize client if not injected (for testing)
 	if o.queryServiceClient == nil {
@@ -141,28 +134,16 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		// Get context from ChromaDB query
-		resultEmbeddings, err := c.Query(context.Background(), input, 13, nil, nil)
-		if err != nil {
-			return fmt.Errorf("failed to query ChromaDB: %w", err)
-		}
-
-		// Build context text from results
-		var contextText string
-		for i := 0; i < 13 && i < len(resultEmbeddings); i++ {
-			contextText += fmt.Sprintf("%s\n\n", resultEmbeddings[i].Content)
-		}
-
 		// Add user's message
 		messages = append(messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf(PROMPT_TEMPLATE, contextText, input),
+			Content: input,
 		})
 
 		resp, err := client.CreateChatCompletion(
 			context.Background(),
 			openai.ChatCompletionRequest{
-				Model:    openai.GPT4,
+				Model:    o.model,
 				Messages: messages,
 			},
 		)
@@ -170,7 +151,11 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to create chat completion: %w", err)
 		}
 
+		if len(resp.Choices) == 0 {
+			return fmt.Errorf("the model returned no answer")
+		}
 		script := resp.Choices[0].Message.Content
+		messages = append(messages, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleAssistant, Content: script})
 
 		// Execute the query and capture output
 		var queryResult string
@@ -389,4 +374,11 @@ func New() *cobra.Command {
 	o.AddFlags(cmd)
 
 	return cmd
+}
+
+func envOr(name, fallback string) string {
+	if v := os.Getenv(name); v != "" {
+		return v
+	}
+	return fallback
 }

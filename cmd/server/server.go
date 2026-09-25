@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/Perruer/sapper/pkg/storages"
 	"github.com/Perruer/sapper/pkg/utils"
-	chromadb "github.com/philippgille/chromem-go"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/http2"
@@ -58,8 +56,10 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 		[]string{"http://localhost:8089"},
 		"Allowed origins for CORS (e.g., 'https://sapper.example.com')",
 	)
-	cmd.Flags().BoolVar(&o.UseOpenAILLM, "use-openai-llm", false, "Use OpenAI LLM for graph analysis")
-	cmd.Flags().StringVar(&o.VectorDBPath, "vector-db-path", "./db", "Path to the vector database")
+	cmd.Flags().BoolVar(&o.UseOpenAILLM, "use-openai-llm", false, "No longer needed: sapper llm works without server-side setup")
+	_ = cmd.Flags().MarkDeprecated("use-openai-llm", "sapper llm no longer needs server-side setup")
+	cmd.Flags().StringVar(&o.VectorDBPath, "vector-db-path", "./db", "No longer used")
+	_ = cmd.Flags().MarkDeprecated("vector-db-path", "sapper llm no longer uses a vector database")
 }
 
 func (o *options) ProvideStorage() (graph.Storage, error) {
@@ -146,97 +146,6 @@ func (o *options) startServer(server *http.Server) error {
 	// Handle graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-
-	if o.UseOpenAILLM {
-		db, err := chromadb.NewPersistentDB(o.VectorDBPath, false)
-		if err != nil {
-			return fmt.Errorf("failed to initialize ChromaDB: %w", err)
-		}
-
-		c, err := db.CreateCollection("knowledge-base", nil, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create collection in ChromaDB: %w", err)
-		}
-
-		// Initialize ChromaDB documents
-		err = c.AddDocuments(context.Background(), []chromadb.Document{
-			{
-				ID:      "1",
-				Content: "To query dependencies of a package, use the format, and only output the query: dependencies library pkg:<package_name>. All three are necessary.",
-			},
-			{
-				ID:      "2",
-				Content: "To find dependents of a package, use the format, and only output the query: dependents library pkg:<package_name>. All three are necessary.",
-			},
-			{
-				ID:      "3",
-				Content: "For vulnerabilities related to a package, use the format, and only output the query: dependencies vuln pkg:<package_name>. All three are necessary.",
-			},
-			{
-				ID:      "4",
-				Content: "Combine queries using logical operators like and, or, and xor. All three are necessary.",
-			},
-			{
-				ID:      "5",
-				Content: "When using 'and', both conditions must be true. For example, and only output the query: dependencies library pkg:A and dependencies library pkg:B.",
-			},
-			{
-				ID:      "6",
-				Content: "When using 'or', at least one of the conditions must be true. For example, and only output the query: dependencies library pkg:A or dependencies library pkg:B.",
-			},
-			{
-				ID:      "7",
-				Content: "Use 'xor' to indicate that only one of the conditions can be true. For example, and only output the query: dependencies library pkg:A xor dependencies library pkg:B.",
-			},
-			{
-				ID:      "8",
-				Content: "You can chain multiple queries together. For example, and only output the query: dependencies library pkg:A and dependents library pkg:B or vulnerabilities vuln pkg:C.",
-			},
-			{
-				ID:      "9",
-				Content: "Package names can include versioning information. For example, and only output the query: dependencies library pkg:example-lib@1.0.0.",
-			},
-			{
-				ID:      "10",
-				Content: "Ensure that all keywords are used correctly. The keywords are: dependencies, dependents, library, vuln, xor, or, and.",
-			},
-			{
-				ID:      "11",
-				Content: "If a query does not specify a package name, it cannot be processed. Always include a package name in your queries.",
-			},
-			{
-				ID:      "12",
-				Content: "To check for multiple vulnerabilities across different packages, you can use, and only output the query: dependencies vuln pkg:A or dependencies vuln pkg:B.",
-			},
-			{
-				ID:      "13",
-				Content: "When using 'or', 'and', or 'xor', to take the answer of multiple queries and use an binary operator on the whole result with another query, or another set of queries, you can wrap a set of queries in brackets (), these can also be nested. Example: ((dependencies library pkg:A and dependencies library pkg:B) or (dependencies library pkg:C and dependencies library pkg:D)) and (dependents library pkg:E).",
-			},
-			{
-				ID:      "14",
-				Content: "Leaderboard queries are a different type of query, they run queries for every single node in the graph and return a sorted list based of length of the result.",
-			},
-			{
-				ID:      "15",
-				Content: "To run a leaderboard query, it is quite similar to a regular query, but instead of runing somthing like depedencies library pkg:A, you would run dependencies library. This would create a leaderboard which is sorted by each node's dependencies of type library.",
-			},
-			{
-				ID:      "16",
-				Content: "Leaderboards format are basicaly the same as a query, just if you do not include the node name for the last part of the query, it fills it with the node we are using for the leaderboard, which is every single node in the leaderboard. This means that to make a proper leaderboard we should have at least one part that does not include a node name, we can still combine this with another query. For example: (dependencies library) and (dependents library pkg:github.com/sigstore/cosign) would create a leaderboard sorted by the number of dependencies a project has that is shared with cosign. We can also repeat this 2 part query multiple times, for example : dependencies library and dependents library would work as well.",
-			},
-			{
-				ID:      "17",
-				Content: "If the user, or you are not sure about what the node's name is, you can use the glob pattern to search for nodes. For example, if you want to search for all nodes that start with 'github.com/sigstore', you can use the pattern 'github.com/sigstore*'. Try to get as many nodes as possible, so if they tell you the name is cosign, and maybe the org is sigstore, you can use '*cosign*', since it will match all nodes that contain cosign, since they are not sure about the org.",
-			},
-			{
-				ID:      "18",
-				Content: "When glob seaching never assume the position of anything, so wrap everything can in ** on both sides.",
-			},
-		}, runtime.NumCPU())
-		if err != nil {
-			return fmt.Errorf("failed to add documents to ChromaDB: %w", err)
-		}
-	}
 
 	go func() {
 		log.Printf("Server is starting on %s\n", server.Addr)
