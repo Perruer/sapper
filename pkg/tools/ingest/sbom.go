@@ -7,7 +7,34 @@ import (
 
 	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/protobom/protobom/pkg/reader"
+	"github.com/protobom/protobom/pkg/sbom"
 )
+
+type edgeDirection int
+
+const (
+	notADependency edgeDirection = iota
+	fromDependsOnTo
+	toDependsOnFrom
+)
+
+// dependencyDirection says what an SBOM edge means for the dependency graph. protobom keeps the
+// orientation of SPDX's "X_OF" relationships: in "A runtimeDependency B" A is the dependency of B.
+// Treating every edge as "From depends on To" turns those into dependencies pointing the wrong way,
+// which creates cycles and makes every package a dependent of every other one. Relationships that
+// are not dependencies (describes, generates, documentation, tools and so on) are left out.
+func dependencyDirection(t sbom.Edge_Type) edgeDirection {
+	switch t {
+	case sbom.Edge_contains, sbom.Edge_dependsOn, sbom.Edge_prerequisite, sbom.Edge_staticLink, sbom.Edge_dynamicLink:
+		return fromDependsOnTo
+	case sbom.Edge_contained_by, sbom.Edge_dependencyOf, sbom.Edge_prerequisiteFor,
+		sbom.Edge_buildDependency, sbom.Edge_devDependency, sbom.Edge_runtimeDependency, sbom.Edge_testDependency,
+		sbom.Edge_optionalDependency, sbom.Edge_optionalComponent, sbom.Edge_providedDependency:
+		return toDependsOnFrom
+	default:
+		return notADependency
+	}
+}
 
 func SBOM(storage graph.Storage, data []byte) error {
 	if len(data) == 0 {
@@ -51,24 +78,36 @@ func SBOM(storage graph.Storage, data []byte) error {
 	}
 
 	for _, edge := range nodeList.Edges {
-		fromNode, err := storage.GetNode(nameToId[edge.From])
-		if err != nil {
-			return fmt.Errorf("failed to get from node %s: %w", edge.From, err)
+		direction := dependencyDirection(edge.Type)
+		if direction == notADependency {
+			continue
+		}
+		fromID, ok := nameToId[edge.From]
+		if !ok {
+			continue // an edge to an element that is not a node, such as the document itself
 		}
 
 		for _, to := range edge.To {
-
-			toNode, err := storage.GetNode(nameToId[to])
+			toID, ok := nameToId[to]
+			if !ok || fromID == toID {
+				continue
+			}
+			dependentID, dependencyID := fromID, toID
+			if direction == toDependsOnFrom {
+				dependentID, dependencyID = toID, fromID
+			}
+			// Load the nodes for each edge: SetDependency saves them, and a node can take part in several edges.
+			dependent, err := storage.GetNode(dependentID)
 			if err != nil {
-				return fmt.Errorf("failed to to get node %s: %w", edge.To, err)
+				return fmt.Errorf("failed to get node %d: %w", dependentID, err)
 			}
-
-			if fromNode.ID != toNode.ID {
-				if err := fromNode.SetDependency(storage, toNode); err != nil {
-					return fmt.Errorf("failed to add edge %s -> %s: %w", edge.From, to, err)
-				}
+			dependency, err := storage.GetNode(dependencyID)
+			if err != nil {
+				return fmt.Errorf("failed to get node %d: %w", dependencyID, err)
 			}
-
+			if err := dependent.SetDependency(storage, dependency); err != nil {
+				return fmt.Errorf("failed to add edge %s -> %s: %w", edge.From, to, err)
+			}
 		}
 	}
 

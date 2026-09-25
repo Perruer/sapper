@@ -3,8 +3,8 @@ package osv
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/spf13/pflag"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {

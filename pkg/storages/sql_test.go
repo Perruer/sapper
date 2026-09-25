@@ -1,11 +1,11 @@
 package storages
 
 import (
-	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/RoaringBitmap/roaring"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,9 +36,8 @@ func TestSQLGenerateID_InMemory(t *testing.T) {
 
 // TestGenerateID_FileBased tests the GenerateID method using a file-based SQLite database.
 func TestGenerateID_FileBased(t *testing.T) {
-	// Create a temporary file for the SQLite database
-	tempDB := "test_generate_id.db"
-	defer os.Remove(tempDB) // Clean up after the test
+	// A temporary file for the SQLite database; the connections are closed before the directory is removed
+	tempDB := filepath.Join(t.TempDir(), "test_generate_id.db")
 
 	storage, err := SetupSQLTestDB(tempDB)
 	if err != nil {
@@ -63,10 +62,14 @@ func TestGenerateID_FileBased(t *testing.T) {
 	}
 
 	// Re-initialize the storage to ensure persistence
+	if err := storage.Close(); err != nil {
+		t.Fatalf("Close failed: %v", err)
+	}
 	storage, err = SetupSQLTestDB(tempDB)
 	if err != nil {
 		t.Fatalf("Re-setup failed: %v", err)
 	}
+	t.Cleanup(func() { _ = storage.Close() })
 
 	// Generate additional IDs and ensure they continue from the last value
 	for i := numIDs + 1; i <= numIDs*2; i++ {

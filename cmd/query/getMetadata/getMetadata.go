@@ -12,7 +12,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -138,10 +137,8 @@ func (o *options) handleJSONOutput(cmd *cobra.Command, node *apiv1.Node) error {
 // formatTable writes the node information in a tabular format to the provided writer.
 // It creates a table with columns for Name, Type, and ID.
 func formatTable(w io.Writer, node *apiv1.Node) error {
-	table := tablewriter.NewWriter(w)
-	table.SetHeader([]string{"Name", "Type", "ID"})
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
+	table := helpers.NewTable(w, false)
+	table.Header([]string{"Name", "Type", "ID"})
 
 	table.Append([]string{
 		node.Name,

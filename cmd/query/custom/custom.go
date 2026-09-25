@@ -11,7 +11,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -81,14 +80,12 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 
 // formatTable formats the nodes into a table and writes it to the provided writer.
 func formatTable(w io.Writer, nodes []*apiv1.Node, maxOutput int, showInfo bool) error {
-	table := tablewriter.NewWriter(w)
+	table := helpers.NewTable(w, true)
 	headers := []string{"Name", "Type", "ID"}
 	if showInfo {
 		headers = append(headers, "Info")
 	}
-	table.SetHeader(headers)
-	table.SetAutoWrapText(false)
-	table.SetRowLine(true)
+	table.Header(headers)
 
 	count := 0
 	for _, node := range nodes {

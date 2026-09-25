@@ -140,13 +140,13 @@ func TestOptions_PersistentPreRunE(t *testing.T) {
 		errorMessage string
 	}{
 		{
+			// An empty path means sapper.db in the data folder (SAPPER_DATA_DIR in this test).
 			name: "SQLite with empty StoragePath",
 			options: &options{
 				StorageType: sqliteStorageType,
 				StoragePath: "",
 			},
-			wantErr:      true,
-			errorMessage: "storage-path is required when using SQLite with file-based storage",
+			wantErr: false,
 		},
 		{
 			name: "Redis with empty StorageAddr",
@@ -185,6 +185,7 @@ func TestOptions_PersistentPreRunE(t *testing.T) {
 	}
 
 	cmd := &cobra.Command{}
+	t.Setenv("SAPPER_DATA_DIR", t.TempDir())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

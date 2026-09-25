@@ -8,7 +8,7 @@ import (
 
 	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/Perruer/sapper/pkg/utils"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 type RedisStorage struct {

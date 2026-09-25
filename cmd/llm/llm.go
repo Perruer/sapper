@@ -14,7 +14,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	"github.com/olekukonko/tablewriter"
 	chromadb "github.com/philippgille/chromem-go"
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
@@ -56,15 +55,15 @@ Please provide a helpful response. If the question requires a DSL query, format 
 
 // options holds the command-line options.
 type options struct {
-	maxOutput          int
-	showInfo           bool
-	saveQuery          string
-	addr               string
-	output             string
-	queryServiceClient apiv1connect.QueryServiceClient
+	maxOutput                int
+	showInfo                 bool
+	saveQuery                string
+	addr                     string
+	output                   string
+	queryServiceClient       apiv1connect.QueryServiceClient
 	leaderboardServiceClient apiv1connect.LeaderboardServiceClient
-	graphServiceClient apiv1connect.GraphServiceClient
-	vectorDBPath       string
+	graphServiceClient       apiv1connect.GraphServiceClient
+	vectorDBPath             string
 }
 
 // AddFlags adds command-line flags to the provided cobra command.
@@ -78,7 +77,7 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 
 // Run executes the custom command with the provided arguments.
 func (o *options) Run(cmd *cobra.Command, args []string) error {
-	
+
 	if os.Getenv("OPENAI_API_KEY") == "" {
 		return fmt.Errorf("OPENAI_API_KEY environment variable is not set")
 	}
@@ -127,7 +126,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("Starting chat session. Type 'exit' to end.")
-	
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("\nYou: ")
@@ -181,14 +180,13 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 			// Check if this is a leaderboard query
 			if strings.HasPrefix(strings.TrimSpace(script), "leaderboard:") {
 
-
 				// Remove the "leaderboard:" prefix
 				cleanScript := strings.TrimPrefix(strings.TrimSpace(script), "leaderboard:")
 				fmt.Printf("\nAssistant: I'll help you with that. I'm going to use this leaderboard query:\n\"%s\"\n", cleanScript)
 
 				req := connect.NewRequest(&apiv1.CustomLeaderboardRequest{Script: cleanScript})
 				res, err := o.leaderboardServiceClient.CustomLeaderboard(cmd.Context(), req)
-				
+
 				if err != nil {
 					queryResult = fmt.Sprintf("Leaderboard query failed: %v", err)
 				} else if len(res.Msg.Queries) == 0 {
@@ -218,7 +216,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 
 				req := connect.NewRequest(&apiv1.QueryRequest{Script: cleanScript})
 				res, err := o.queryServiceClient.Query(cmd.Context(), req)
-				
+
 				if err != nil {
 					queryResult = fmt.Sprintf("Query failed: %v", err)
 				} else if len(res.Msg.Nodes) == 0 {
@@ -248,7 +246,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 
 				req := connect.NewRequest(&apiv1.GetNodesByGlobRequest{Pattern: pattern})
 				res, err := o.graphServiceClient.GetNodesByGlob(cmd.Context(), req)
-				
+
 				if err != nil {
 					queryResult = fmt.Sprintf("Query failed: %v", err)
 				} else if len(res.Msg.Nodes) == 0 {
@@ -289,14 +287,12 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 
 // formatTable formats the nodes into a table and writes it to the provided writer.
 func formatTable(w io.Writer, nodes []*apiv1.Node, maxOutput int, showInfo bool) error {
-	table := tablewriter.NewWriter(w)
+	table := helpers.NewTable(w, true)
 	headers := []string{"Name", "Type", "ID"}
 	if showInfo {
 		headers = append(headers, "Info")
 	}
-	table.SetHeader(headers)
-	table.SetAutoWrapText(false)
-	table.SetRowLine(true)
+	table.Header(headers)
 
 	count := 0
 	for _, node := range nodes {
@@ -325,14 +321,12 @@ func formatTable(w io.Writer, nodes []*apiv1.Node, maxOutput int, showInfo bool)
 
 // Add new function to format leaderboard table
 func formatLeaderboardTable(w io.Writer, queries []*apiv1.Query, maxOutput int, showInfo bool) error {
-	table := tablewriter.NewWriter(w)
+	table := helpers.NewTable(w, true)
 	headers := []string{"Name", "Type", "ID", "Output"}
 	if showInfo {
 		headers = append(headers, "Info")
 	}
-	table.SetHeader(headers)
-	table.SetAutoWrapText(false)
-	table.SetRowLine(true)
+	table.Header(headers)
 
 	count := 0
 	for _, query := range queries {
@@ -361,24 +355,22 @@ func formatLeaderboardTable(w io.Writer, queries []*apiv1.Query, maxOutput int, 
 }
 
 func formatTableGlobSearch(w io.Writer, nodes []*apiv1.Node, maxOutput int, showInfo bool) error {
-    table := tablewriter.NewWriter(w)
-    table.SetHeader([]string{"Name", "Type", "ID"})
-    table.SetAutoWrapText(false)
-    table.SetAutoFormatHeaders(true)
+	table := helpers.NewTable(w, false)
+	table.Header([]string{"Name", "Type", "ID"})
 
-    for i, node := range nodes {
-        if i >= maxOutput {
-            break
-        }
-        table.Append([]string{
-            node.Name,
-            node.Type,
-            strconv.FormatUint(uint64(node.Id), 10),
-        })
-    }
+	for i, node := range nodes {
+		if i >= maxOutput {
+			break
+		}
+		table.Append([]string{
+			node.Name,
+			node.Type,
+			strconv.FormatUint(uint64(node.Id), 10),
+		})
+	}
 
-    table.Render()
-    return nil
+	table.Render()
+	return nil
 }
 
 // New creates and returns a new Cobra command for executing custom query scripts.

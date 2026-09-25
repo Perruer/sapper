@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Perruer/sapper/pkg/graph"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
@@ -49,14 +49,22 @@ type SQLStorage struct {
 }
 
 // NewSQLStorage initializes a new SQLStorage with a SQLite database.
+// An in-memory database lives in a single connection: every new connection to ":memory:" would
+// open a separate, empty database. A file database uses WAL and waits for locks instead of failing
+// with "database is locked" when requests run in parallel.
 func NewSQLStorage(dsn string, useInMemory bool) (*SQLStorage, error) {
-	var db *gorm.DB
-	var err error
-	if useInMemory {
-		db, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	openConns := maxOpenConnections
+	if useInMemory || strings.Contains(dsn, ":memory:") {
+		dsn = "file::memory:"
+		openConns = 1
 	} else {
-		db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+		sep := "?"
+		if strings.Contains(dsn, "?") {
+			sep = "&"
+		}
+		dsn += sep + "_pragma=busy_timeout(10000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)"
 	}
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to SQLite: %w", err)
 	}
@@ -64,9 +72,11 @@ func NewSQLStorage(dsn string, useInMemory bool) (*SQLStorage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SQLDB: %w", err)
 	}
-	sqlDB.SetMaxIdleConns(maxConnections)
-	sqlDB.SetMaxOpenConns(maxOpenConnections)
-	sqlDB.SetConnMaxLifetime(connectionMaxLifetime)
+	sqlDB.SetMaxIdleConns(min(maxConnections, openConns))
+	sqlDB.SetMaxOpenConns(openConns)
+	if openConns > 1 {
+		sqlDB.SetConnMaxLifetime(connectionMaxLifetime)
+	}
 
 	storage := &SQLStorage{DB: db}
 
@@ -75,6 +85,15 @@ func NewSQLStorage(dsn string, useInMemory bool) (*SQLStorage, error) {
 	}
 
 	return storage, nil
+}
+
+// Close closes the database connections.
+func (s *SQLStorage) Close() error {
+	sqlDB, err := s.DB.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }
 
 // Migrate performs the database migrations for SQLStorage.

@@ -9,9 +9,9 @@ import (
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "query",
-		Short: "Query dependencies and dependents of a project",
-		Long:  "A comprehensive set of commands to query dependencies and dependents of a project, enabling detailed data retrieval and analysis.",
+		Use:               "query",
+		Short:             "Query dependencies and dependents of a project",
+		Long:              "A comprehensive set of commands to query dependencies and dependents of a project, enabling detailed data retrieval and analysis.",
 		DisableAutoGenTag: true,
 	}
 

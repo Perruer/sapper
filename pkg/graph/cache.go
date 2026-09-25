@@ -3,8 +3,8 @@ package graph
 import (
 	"fmt"
 
-	"github.com/RoaringBitmap/roaring"
 	"github.com/Perruer/sapper/pkg/utils"
+	"github.com/RoaringBitmap/roaring"
 )
 
 func Cache(storage Storage) error {

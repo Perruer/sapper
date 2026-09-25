@@ -250,7 +250,7 @@ func (s *Service) AllKeys(ctx context.Context, req *connect.Request[emptypb.Empt
 	for _, node := range nodes {
 		query, err := NodeToServiceNode(node)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert node to service node: %w", err)	
+			return nil, fmt.Errorf("failed to convert node to service node: %w", err)
 		}
 		resultNodes = append(resultNodes, query)
 	}

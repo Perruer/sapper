@@ -5,17 +5,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/RoaringBitmap/roaring"
+	"github.com/alicebob/miniredis/v2"
+
 	"github.com/Perruer/sapper/pkg/graph"
+	"github.com/RoaringBitmap/roaring"
 	"github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateID(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	id, err := r.GenerateID()
 	assert.NoError(t, err)
@@ -23,10 +22,7 @@ func TestGenerateID(t *testing.T) {
 }
 
 func TestSaveNode(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	node := &graph.Node{ID: 1, Name: "test_node", Children: roaring.New(), Parents: roaring.New()}
 	err = r.SaveNode(node)
@@ -40,10 +36,7 @@ func TestSaveNode(t *testing.T) {
 }
 
 func TestNameToID(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	node := &graph.Node{ID: 1, Name: "test_node", Children: roaring.New(), Parents: roaring.New()}
 	err = r.SaveNode(node)
@@ -55,10 +48,7 @@ func TestNameToID(t *testing.T) {
 }
 
 func TestGetAllKeys(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	node1 := &graph.Node{ID: 1, Name: "node1", Children: roaring.New(), Parents: roaring.New()}
 	node2 := &graph.Node{ID: 2, Name: "node2", Children: roaring.New(), Parents: roaring.New()}
@@ -74,10 +64,7 @@ func TestGetAllKeys(t *testing.T) {
 }
 
 func TestSaveCache(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	cache := &graph.NodeCache{ID: 1, AllParents: roaring.New(), AllChildren: roaring.New()}
 	err = r.SaveCache(cache)
@@ -89,10 +76,7 @@ func TestSaveCache(t *testing.T) {
 }
 
 func TestToBeCached(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	nodeID := uint32(1)
 	err = r.AddNodeToCachedStack(nodeID)
@@ -104,10 +88,7 @@ func TestToBeCached(t *testing.T) {
 }
 
 func TestClearCacheStack(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	nodeID := uint32(1)
 	err = r.AddNodeToCachedStack(nodeID)
@@ -122,10 +103,7 @@ func TestClearCacheStack(t *testing.T) {
 }
 
 func TestGetNodes(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	// Add test data
 	node1 := &graph.Node{ID: 1, Name: "test_node1", Children: roaring.New(), Parents: roaring.New()}
@@ -145,10 +123,7 @@ func TestGetNodes(t *testing.T) {
 }
 
 func TestSaveCaches(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	cache1 := &graph.NodeCache{ID: 1, AllParents: roaring.New(), AllChildren: roaring.New()}
 	cache2 := &graph.NodeCache{ID: 2, AllParents: roaring.New(), AllChildren: roaring.New()}
@@ -165,10 +140,7 @@ func TestSaveCaches(t *testing.T) {
 }
 
 func TestGetCaches(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	cache1 := &graph.NodeCache{ID: 1, AllParents: roaring.New(), AllChildren: roaring.New()}
 	cache2 := &graph.NodeCache{ID: 2, AllParents: roaring.New(), AllChildren: roaring.New()}
@@ -185,10 +157,7 @@ func TestGetCaches(t *testing.T) {
 }
 
 func TestRemoveAllCaches(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	cache1 := &graph.NodeCache{ID: 1, AllParents: roaring.New(), AllChildren: roaring.New()}
 	cache2 := &graph.NodeCache{ID: 2, AllParents: roaring.New(), AllChildren: roaring.New()}
@@ -207,10 +176,7 @@ func TestRemoveAllCaches(t *testing.T) {
 }
 
 func TestAddAndGetDataToDB(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	err = r.AddOrUpdateCustomData("test_tag", "test_key1", "test_data1", []byte("test_data1"))
 	assert.NoError(t, err)
@@ -231,10 +197,7 @@ func TestAddAndGetDataToDB(t *testing.T) {
 }
 
 func TestGetNodesByGlob(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
-	}
-	r, err := SetupRedisTestDB(context.Background())
+	r, err := setupRedis(t)
 	assert.NoError(t, err)
 	// Add test nodes
 	node1 := &graph.Node{ID: 1, Name: "test_node1", Children: roaring.New(), Parents: roaring.New()}
@@ -266,4 +229,14 @@ func TestGetNodesByGlob(t *testing.T) {
 	r.Client.Close()
 	_, err = r.GetNodesByGlob("test_*")
 	assert.Error(t, err)
+}
+
+// setupRedis connects to TEST_REDIS_URL when it is set, and otherwise to an in-process Redis
+// (miniredis), so the Redis storage is tested without a server.
+func setupRedis(t *testing.T) (*RedisStorage, error) {
+	t.Helper()
+	if os.Getenv("TEST_REDIS_URL") == "" {
+		t.Setenv("TEST_REDIS_URL", miniredis.RunT(t).Addr())
+	}
+	return SetupRedisTestDB(context.Background())
 }

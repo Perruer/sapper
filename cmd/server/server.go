@@ -17,6 +17,7 @@ import (
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/Perruer/sapper/pkg/storages"
+	"github.com/Perruer/sapper/pkg/utils"
 	chromadb "github.com/philippgille/chromem-go"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
@@ -49,8 +50,8 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.addr, "addr", defaultAddr, "Network address and port for the server (e.g. localhost:8089)")
 	cmd.Flags().StringVar(&o.StorageType, "storage-type", sqliteStorageType, "Type of storage to use (e.g., redis, sqlite)")
 	cmd.Flags().StringVar(&o.StorageAddr, "storage-addr", "localhost:6379", "Address for redis storage backend")
-	cmd.Flags().StringVar(&o.StoragePath, "storage-path", "", "Path to the SQLite database file")
-	cmd.Flags().BoolVar(&o.UseInMemory, "use-in-memory", true, "Use in-memory SQLite database")
+	cmd.Flags().StringVar(&o.StoragePath, "storage-path", "", "Path to the SQLite database file (default: sapper.db in $SAPPER_DATA_DIR or the user data folder)")
+	cmd.Flags().BoolVar(&o.UseInMemory, "use-in-memory", false, "Keep the SQLite database in memory; it is lost when the server stops")
 	cmd.Flags().StringSliceVar(
 		&o.CORS,
 		"cors",
@@ -91,10 +92,12 @@ func (o *options) PersistentPreRunE(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("invalid storage-type %q: must be one of [redis, sqlite]", o.StorageType)
 	}
 
-	if o.StorageType == sqliteStorageType && o.StoragePath == "" {
-		if !o.UseInMemory {
-			return fmt.Errorf("storage-path is required when using SQLite with file-based storage")
+	if o.StorageType == sqliteStorageType && o.StoragePath == "" && !o.UseInMemory {
+		path, err := utils.DefaultDatabasePath()
+		if err != nil {
+			return fmt.Errorf("cannot find a folder for the database, set --storage-path or SAPPER_DATA_DIR: %w", err)
 		}
+		o.StoragePath = path
 	}
 
 	if o.StorageType == redisStorageType && o.StorageAddr == "" {

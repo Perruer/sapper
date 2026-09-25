@@ -9,8 +9,9 @@ const ellipsis = "..."
 // needed for "..." + 1 character), the original string is returned.
 //
 // Example:
-//   TruncateString("hello world", 8) // returns "...world"
-//   TruncateString("hi", 8)          // returns "hi"
+//
+//	TruncateString("hello world", 8) // returns "...world"
+//	TruncateString("hi", 8)          // returns "hi"
 func TruncateString(str string, maxLength int) string {
 	if maxLength < 4 {
 		return str

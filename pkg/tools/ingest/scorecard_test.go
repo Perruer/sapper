@@ -25,7 +25,7 @@ func TestScorecards(t *testing.T) {
 		if !strings.HasSuffix(file.Name(), ".json") {
 			continue
 		}
-		
+
 		data, err := os.ReadFile(filepath.Join(sbomDir, file.Name()))
 		if err != nil {
 			t.Fatalf("Failed to read SBOM file %s: %v", file.Name(), err)

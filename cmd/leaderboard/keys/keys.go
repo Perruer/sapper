@@ -10,7 +10,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	v1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -118,16 +117,14 @@ func (o *options) renderTable(w io.Writer, resp *connect.Response[v1.AllKeysResp
 	}
 
 	// Setup table writer
-	table := tablewriter.NewWriter(w)
-	table.SetAutoWrapText(false)
-	table.SetRowLine(true)
+	table := helpers.NewTable(w, true)
 
 	// Define headers dynamically based on showInfo flag
 	headers := []string{headerName, headerType, headerID}
 	if showInfo {
 		headers = append(headers, headerInfo)
 	}
-	table.SetHeader(headers)
+	table.Header(headers)
 
 	for index, node := range resp.Msg.Nodes {
 		if index >= maxOutput {

@@ -8,9 +8,9 @@ import (
 	"github.com/Perruer/sapper/cmd/cache"
 	"github.com/Perruer/sapper/cmd/ingest"
 	"github.com/Perruer/sapper/cmd/leaderboard"
+	llm "github.com/Perruer/sapper/cmd/llm"
 	"github.com/Perruer/sapper/cmd/query"
 	"github.com/Perruer/sapper/cmd/server"
-	llm "github.com/Perruer/sapper/cmd/llm"
 	"github.com/spf13/cobra"
 )
 

@@ -11,7 +11,6 @@ import (
 	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -95,14 +94,12 @@ func (o *options) renderTable(w io.Writer, res *connect.Response[apiv1.CustomLea
 		return nil
 	}
 
-	table := tablewriter.NewWriter(w)
-	table.SetAutoWrapText(false)
-	table.SetRowLine(true)
+	table := helpers.NewTable(w, true)
 	headers := []string{"Name", "Type", "ID", "Output"}
 	if showInfo {
 		headers = append(headers, "Info")
 	}
-	table.SetHeader(headers)
+	table.Header(headers)
 
 	for index, q := range res.Msg.Queries {
 		if index >= maxOutput {

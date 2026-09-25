@@ -12,13 +12,18 @@ import (
 	service "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/pkg/graph"
 	"github.com/Perruer/sapper/pkg/storages"
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func Test_E2E(t *testing.T) {
-	if _, ok := os.LookupEnv("e2e"); !ok {
-		t.Skip("E2E tests are not enabled")
+	if testing.Short() {
+		t.Skip("skipping the end-to-end test in -short mode")
+	}
+	// Redis comes from TEST_REDIS_URL, or runs in-process (miniredis) when it is not set.
+	if os.Getenv("TEST_REDIS_URL") == "" {
+		t.Setenv("TEST_REDIS_URL", miniredis.RunT(t).Addr())
 	}
 
 	// Setup storage backends
@@ -32,7 +37,7 @@ func Test_E2E(t *testing.T) {
 			storage graph.Storage
 			cleanup func()
 		} {
-			testDBPath := "test_e2e.db"
+			testDBPath := filepath.Join(t.TempDir(), "test_e2e.db")
 			sqlite, err := storages.SetupSQLTestDB(testDBPath)
 			if err != nil {
 				t.Fatal(err)
@@ -44,7 +49,7 @@ func Test_E2E(t *testing.T) {
 			}{
 				name:    "sqlite",
 				storage: sqlite,
-				cleanup: func() { os.Remove(testDBPath) },
+				cleanup: func() { _ = sqlite.Close() },
 			}
 		}(),
 		func() struct {
@@ -142,9 +147,11 @@ func Test_E2E(t *testing.T) {
 					defaultNodeName: "",
 				},
 				{
-					name:            "Dependents query with xor",
-					script:          "dependents library pkg:github/actions/checkout@v3 xor dependents library pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-					want:            14,
+					name:   "Dependents query with xor",
+					script: "dependents library pkg:github/actions/checkout@v3 xor dependents library pkg:golang/gopkg.in/yaml.v3@v3.0.1",
+					// 14 with protobom 0.5, which dropped the dependsOn edges of CycloneDX documents;
+					// counted independently from the JSON files: 5 + 10 dependents plus the two nodes themselves.
+					want:            17,
 					defaultNodeName: "",
 				},
 				{
@@ -170,7 +177,7 @@ func Test_E2E(t *testing.T) {
 				{
 					name:            "Complex nested expressions",
 					script:          "(dependents library pkg:github/actions/checkout@v3 and dependents library pkg:golang/gopkg.in/yaml.v3@v3.0.1) or dependents library pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-					want:            8,
+					want:            11, // 8 with protobom 0.5 (see above)
 					defaultNodeName: "",
 					wantErr:         false,
 				},
@@ -224,12 +231,14 @@ func Test_E2E(t *testing.T) {
 							Script: tt.script,
 						})
 						resp, err := s.CustomLeaderboard(context.Background(), req)
-						nodes := resp.Msg.Queries
-
 						if (err != nil) != tt.wantErr {
 							t.Errorf("CustomLeaderboard() error = %v, wantErr %v", err, tt.wantErr)
 							return
 						}
+						if err != nil {
+							return
+						}
+						nodes := resp.Msg.Queries
 						if len(nodes) == 0 {
 							t.Errorf("CustomLeaderboard() returned no queries, expected at least one")
 							return
@@ -242,12 +251,14 @@ func Test_E2E(t *testing.T) {
 							Script: tt.script,
 						})
 						resp, err := s.Query(context.Background(), req)
-						nodes := resp.Msg.Nodes
-
 						if (err != nil) != tt.wantErr {
 							t.Errorf("Query() error = %v, wantErr %v", err, tt.wantErr)
 							return
 						}
+						if err != nil {
+							return
+						}
+						nodes := resp.Msg.Nodes
 						if !tt.wantErr && len(nodes) != int(tt.want) {
 							t.Errorf("Query() got cardinality = %v, want cardinality %v", len(nodes), tt.want)
 						}
