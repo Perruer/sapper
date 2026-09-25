@@ -1,6 +1,6 @@
 # Changelog
 
-## Sapper 1.0.0 (unreleased)
+## Sapper 1.0.0 (2026-09-25)
 
 The first release of Sapper, a maintained continuation of [Minefield](https://github.com/bitbomdev/minefield) (archived in August 2025). Module `github.com/Perruer/sapper`, command `sapper`.
 
