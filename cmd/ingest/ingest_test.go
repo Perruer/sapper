@@ -23,6 +23,9 @@ func TestNewCommand(t *testing.T) {
 		"osv [path to vulnerability file/dir]",
 		"sbom [path to sbom file/dir]",
 		"scorecard [path to scorecard file/dir]",
+		"kev [known_exploited_vulnerabilities.json]",
+		"epss [epss_scores-YYYY-MM-DD.csv.gz]",
+		"vex [document.openvex.json]",
 	}
 	assert.ElementsMatch(t, expectedSubcommands, subcommandUses, "Subcommands should match expected list")
 }

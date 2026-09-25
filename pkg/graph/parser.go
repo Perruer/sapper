@@ -36,14 +36,14 @@ type Query struct {
 
 var (
 	simpleLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Operator", `\b(?:and|or|xor)\b`},           // Prioritize operators
-		{"Ident", `[a-zA-Z][a-zA-Z0-9:/._@?=&+\-]*`}, // Updated to handle colons, slashes, dots, underscores, hyphens, and @
-		{"String", `"(?:\\.|[^"])*"`},
-		{"Whitespace", `[ \t\n\r]+`},
-		{"LBracket", `\[`},
-		{"RBracket", `\]`},
-		{"LParen", `\(`},
-		{"RParen", `\)`},
+		{Name: "Operator", Pattern: `\b(?:and|or|xor)\b`},           // Prioritize operators
+		{Name: "Ident", Pattern: `[a-zA-Z][a-zA-Z0-9:/._@?=&+\-]*`}, // Updated to handle colons, slashes, dots, underscores, hyphens, and @
+		{Name: "String", Pattern: `"(?:\\.|[^"])*"`},
+		{Name: "Whitespace", Pattern: `[ \t\n\r]+`},
+		{Name: "LBracket", Pattern: `\[`},
+		{Name: "RBracket", Pattern: `\]`},
+		{Name: "LParen", Pattern: `\(`},
+		{Name: "RParen", Pattern: `\)`},
 	})
 	parser = participle.MustBuild[Expression](
 		participle.Lexer(simpleLexer),
