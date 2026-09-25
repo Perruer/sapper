@@ -1,7 +1,7 @@
 # Sapper: find where vulnerable packages sit across all of your products.
 #   docker build -t sapper .
 #   docker run -p 8089:8089 -v sapper-data:/data sapper
-FROM golang:1.26 AS build
+FROM golang:1.27 AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
