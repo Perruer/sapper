@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
+	"github.com/Perruer/sapper/cmd/helpers"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -50,7 +51,7 @@ func (o *options) initDependencies() error {
 	if o.cacheServiceClient == nil {
 		o.cacheServiceClient = apiv1connect.NewCacheServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 	return nil

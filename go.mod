@@ -2,6 +2,8 @@ module github.com/Perruer/sapper
 
 go 1.26.0
 
+toolchain go1.26.8
+
 require (
 	connectrpc.com/connect v1.21.0
 	connectrpc.com/cors v0.1.0

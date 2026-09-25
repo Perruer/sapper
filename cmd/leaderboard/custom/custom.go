@@ -44,7 +44,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 		if o.addr == "" {
 			o.addr = "http://localhost:8089"
 		}
-		o.client = apiv1connect.NewLeaderboardServiceClient(httpClient, o.addr, connect.WithGRPC(), connect.WithSendGzip())
+		o.client = apiv1connect.NewLeaderboardServiceClient(httpClient, helpers.ServerURL(o.addr), connect.WithGRPC(), connect.WithSendGzip())
 	}
 
 	ctx := cmd.Context()

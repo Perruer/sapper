@@ -82,7 +82,7 @@ func (o *options) fetchNode(ctx context.Context, nodeName string) (*apiv1.Node, 
 	if o.graphServiceClient == nil {
 		o.graphServiceClient = apiv1connect.NewGraphServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 
