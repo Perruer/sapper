@@ -1,5 +1,9 @@
 # Changelog
 
+## Sapper 1.0.1 (unreleased)
+
+- Client commands accept `--addr` as `host:port`, the same form the server takes; `http://` is added when there is no scheme. Before, `--addr localhost:8089` failed with "unsupported protocol scheme".
+
 ## Sapper 1.0.0 (2026-09-25)
 
 The first release of Sapper, a maintained continuation of [Minefield](https://github.com/bitbomdev/minefield) (archived in August 2025). Module `github.com/Perruer/sapper`, command `sapper`.

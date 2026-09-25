@@ -134,7 +134,7 @@ sapper llm --base-url http://localhost:11434/v1 --model qwen2.5-coder  # Ollama,
 
 По умолчанию сервер использует SQLite: `sapper.db` в `$SAPPER_DATA_DIR` или в папке данных пользователя (`~/.local/share/sapper`, `~/Library/Application Support/sapper`, `%LOCALAPPDATA%\sapper`). `--storage-path` задаёт другой файл, `--use-in-memory` держит базу в памяти. Для общего сервера подходит и Redis: `--storage-type redis --storage-addr host:6379`.
 
-Сервер слушает `localhost:8089`, команды CLI обращаются к нему (`--addr`). API — [Connect](https://connectrpc.com/) (gRPC и JSON поверх HTTP), описан в [api/v1/service.proto](api/v1/service.proto).
+Сервер слушает `localhost:8089`, команды CLI обращаются к нему (`--addr` в виде `host:port` или URL). API — [Connect](https://connectrpc.com/) (gRPC и JSON поверх HTTP), описан в [api/v1/service.proto](api/v1/service.proto).
 
 ## Разработка
 

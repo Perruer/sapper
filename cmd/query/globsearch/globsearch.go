@@ -38,7 +38,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 	if o.graphServiceClient == nil {
 		o.graphServiceClient = apiv1connect.NewGraphServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 

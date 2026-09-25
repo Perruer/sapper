@@ -28,7 +28,7 @@ func (o *options) Run(_ *cobra.Command, args []string) error {
 	if o.ingestServiceClient == nil {
 		o.ingestServiceClient = apiv1connect.NewIngestServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 	vulnsPath := args[0]

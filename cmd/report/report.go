@@ -34,7 +34,7 @@ func (o *options) AddFlags(cmd *cobra.Command) {
 
 func (o *options) Run(cmd *cobra.Command, args []string) error {
 	if o.client == nil {
-		o.client = apiv1connect.NewReportServiceClient(http.DefaultClient, o.addr)
+		o.client = apiv1connect.NewReportServiceClient(http.DefaultClient, helpers.ServerURL(o.addr))
 	}
 	req := &apiv1.ReportRequest{KevOnly: o.kevOnly, MinEpss: o.minEPSS}
 	if len(args) == 1 {

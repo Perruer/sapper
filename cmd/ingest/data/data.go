@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"connectrpc.com/connect"
+	"github.com/Perruer/sapper/cmd/helpers"
 	apiv1 "github.com/Perruer/sapper/gen/api/v1"
 	"github.com/Perruer/sapper/gen/api/v1/apiv1connect"
 	"github.com/spf13/cobra"
@@ -35,7 +36,7 @@ func newCommand(k kind) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to read %s: %w", args[0], err)
 			}
-			client := apiv1connect.NewIngestServiceClient(http.DefaultClient, addr)
+			client := apiv1connect.NewIngestServiceClient(http.DefaultClient, helpers.ServerURL(addr))
 			resp, err := k.call(client, cmd.Context(), connect.NewRequest(&apiv1.IngestDataRequest{Data: content}))
 			if err != nil {
 				return err

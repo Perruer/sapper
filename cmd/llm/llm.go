@@ -98,7 +98,7 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 	if o.queryServiceClient == nil {
 		o.queryServiceClient = apiv1connect.NewQueryServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 			connect.WithGRPC(),
 			connect.WithSendGzip(),
 		)
@@ -107,14 +107,14 @@ func (o *options) Run(cmd *cobra.Command, args []string) error {
 	if o.leaderboardServiceClient == nil {
 		o.leaderboardServiceClient = apiv1connect.NewLeaderboardServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 
 	if o.graphServiceClient == nil {
 		o.graphServiceClient = apiv1connect.NewGraphServiceClient(
 			http.DefaultClient,
-			o.addr,
+			helpers.ServerURL(o.addr),
 		)
 	}
 
