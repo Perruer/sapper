@@ -1,0 +1,12 @@
+Sapper
+Copyright 2026 Perruer (Sapper modifications)
+
+This product is a continuation of Minefield (https://github.com/bitbomdev/minefield),
+Copyright 2024 bitbomdev, licensed under the Apache License, Version 2.0.
+
+Sapper adds a vulnerability report with CISA KEV, EPSS and OpenVEX data, fixes how
+SBOM relationships and OSV version ranges are read, replaces the cgo SQLite driver
+with a pure-Go one, and updates the dependencies. The history of the changes is in
+the Git log and in CHANGELOG.md.
+
+Sapper is not affiliated with or endorsed by BitBom.
