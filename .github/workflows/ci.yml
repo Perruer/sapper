@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go mod tidy -diff
+      - run: gofmt -l . | tee /dev/stderr | (! read)
+        if: runner.os != 'Windows'
+      - run: go vet -structtag=false ./...
+      - run: go test -race ./...
+        if: runner.os == 'Linux'
+      - run: go test ./...
+        if: runner.os != 'Linux'
+
+  redis:
+    name: Tests against a real Redis
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:8
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go test ./pkg/storages/ ./e2e/
+        env:
+          TEST_REDIS_URL: localhost:6379
+
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  docker:
+    name: Docker image and a full run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: docker build -t sapper:ci .
+      - name: Start the server
+        run: |
+          docker run -d --name sapper -p 8089:8089 sapper:ci
+          for i in $(seq 1 30); do curl -sf -X POST -H 'Content-Type: application/json' -d '{}' \
+            http://localhost:8089/api.v1.HealthService/Check && break; sleep 1; done
+      - name: Ingest and report with the CLI from the image
+        run: |
+          sapper() { docker run --rm --network host -v "$PWD/testdata:/testdata:ro" --entrypoint sapper sapper:ci "$@"; }
+          sapper ingest sbom /testdata/sboms
+          sapper ingest osv /testdata/osv-vulns
+          sapper cache
+          sapper query custom "dependents library pkg:github/actions/checkout@v3"
+          sapper report --format markdown | tee report.md
+          grep -q "CVE-2024-6345" report.md
+      - name: Data survives a restart
+        run: |
+          docker restart sapper
+          sleep 3
+          docker run --rm --network host --entrypoint sapper sapper:ci report --format json | grep -q GHSA-cx63-2mw6-8hw5
+      - name: Server log
+        if: failure()
+        run: docker logs sapper

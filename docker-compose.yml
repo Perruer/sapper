@@ -1,12 +1,27 @@
-version: '3.8'
-
+# Sapper server with its SQLite database in a volume:
+#   docker compose up -d
+# Then, from the host: sapper ingest sbom ./sboms && sapper cache && sapper report
+#
+# To keep the graph in Redis instead, start with the redis profile and switch the command:
+#   docker compose --profile redis up -d
 services:
-  redis:
-    image: redis:latest
+  sapper:
+    image: ghcr.io/perruer/sapper:latest
+    # build: .
     ports:
-      - "6379:6379"
+      - "127.0.0.1:8089:8089"
+    volumes:
+      - sapper-data:/data
+    # command: ["server", "--addr", "0.0.0.0:8089", "--storage-type", "redis", "--storage-addr", "redis:6379"]
+    restart: unless-stopped
+
+  redis:
+    image: redis:8
+    profiles: [redis]
     volumes:
       - redis-data:/data
+    restart: unless-stopped
 
 volumes:
+  sapper-data:
   redis-data:

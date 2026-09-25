@@ -15,6 +15,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set at build time with -ldflags "-X github.com/Perruer/sapper/cmd/root.Version=...".
+var Version = "dev"
+
 type options struct {
 	PprofAddr    string
 	PprofEnabled bool
@@ -29,6 +32,7 @@ func New() *cobra.Command {
 	o := &options{}
 	rootCmd := &cobra.Command{
 		Use:               "sapper",
+		Version:           Version,
 		Short:             "Find where vulnerable packages sit across all of your products",
 		SilenceUsage:      true,
 		DisableAutoGenTag: true,
@@ -58,5 +62,12 @@ func New() *cobra.Command {
 	rootCmd.AddCommand(server.New())
 	rootCmd.AddCommand(llm.New())
 	rootCmd.AddCommand(report.New())
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print the version of Sapper",
+		Run: func(cmd *cobra.Command, _ []string) {
+			fmt.Fprintln(cmd.OutOrStdout(), "sapper", Version)
+		},
+	})
 	return rootCmd
 }

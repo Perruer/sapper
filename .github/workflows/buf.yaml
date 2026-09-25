@@ -1,55 +1,27 @@
-name: Buf Generate
+name: Generated code
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
-    types: [opened, synchronize]
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  generate:
+    name: Protobuf code is up to date
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      # Step to install buf CLI
-      - name: Install buf CLI
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Install buf and the plugins
         run: |
-          BIN="/usr/local/bin" && \
-          VERSION="1.46.0" && \
-          curl -sSL \
-          "https://github.com/bufbuild/buf/releases/download/v$VERSION/buf-$(uname -s)-$(uname -m)" \
-          -o "$BIN/buf" && \
-          chmod +x "$BIN/buf"
-
-      # Step to install protoc-gen-connect-go
-      - name: Install protoc-gen-connect-go
-        run: |
-          go install github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-
-      # Step to install protoc-gen-go
-      - name: Install protoc-gen-go
-        run: |
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-
-      # Verify buf and protoc-gen-connect-go installation
-      - name: Verify buf and protoc-gen-connect-go installation
-        run: |
-          buf --version
-          protoc-gen-connect-go --version
-          protoc-gen-go --version
-
-      - name: Generate code
-        run: |
-          buf generate
-          make git-porcelain
+          go install github.com/bufbuild/buf/cmd/buf@v1.73.0
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12
+          go install connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.21.0
+      - run: buf generate
+      - name: No changes
+        run: git diff --exit-code -- gen

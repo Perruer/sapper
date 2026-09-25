@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  binaries:
+    name: Binaries and draft release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Build
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            os="${target%/*}"; arch="${target#*/}"
+            name="sapper_${version}_${os}_${arch}"
+            ext=""; [ "$os" = windows ] && ext=".exe"
+            mkdir "dist/$name"
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath \
+              -ldflags "-s -w -X github.com/Perruer/sapper/cmd/root.Version=$version" \
+              -o "dist/$name/sapper$ext" .
+            cp LICENSE NOTICE README.md "dist/$name/"
+            if [ "$os" = windows ]; then (cd dist && zip -qr "$name.zip" "$name"); else tar -czf "dist/$name.tar.gz" -C dist "$name"; fi
+          done
+          (cd dist && sha256sum *.tar.gz *.zip > checksums.txt)
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists"; exit 0
+          fi
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          [ -f "$notes" ] || notes=/dev/null
+          gh release create "$GITHUB_REF_NAME" --draft --title "Sapper ${GITHUB_REF_NAME#v}" --notes-file "$notes" \
+            dist/*.tar.gz dist/*.zip dist/checksums.txt
+
+  image:
+    name: Publish ghcr.io/perruer/sapper
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build and push
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          image=ghcr.io/perruer/sapper
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg VERSION="$version" \
+            --label org.opencontainers.image.source=https://github.com/Perruer/sapper \
+            --label org.opencontainers.image.licenses=Apache-2.0 \
+            --label org.opencontainers.image.version="$version" \
+            -t "$image:$version" -t "$image:latest" --push .
