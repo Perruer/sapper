@@ -12,7 +12,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.4
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/goccy/go-json v0.10.6
+	github.com/goccy/go-json v0.11.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/wire v0.7.0
 	github.com/olekukonko/tablewriter v1.1.5
